@@ -1,0 +1,13 @@
+Package: CSIemail
+Title: Cash Sales Invoices by shop and emails
+Version: 0.0.0.9000
+Authors@R: person('Lefkios', 'Paikousis', email = 'lefkiospaikousis@yahoo.com', role = c('cre', 'aut'))
+Description: Split the CSI email statement by sshop and send emails
+License: What license is it under?
+Imports: 
+    config (>= 0.3),
+    golem (>= 0.3.1),
+    shiny (>= 1.6.0)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
