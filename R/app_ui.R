@@ -9,8 +9,33 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic 
-    fluidPage(
-      h1("CSIemail")
+    dashboardPage(
+      dashboardHeader(title = "ACS CSI"),
+      dashboardSidebar(
+        sidebarMenu(id = "tabs",
+                    #menuItem("Reports", tabName = "reports", icon = icon("chart-bar")),
+                    #menuItem("Automatic", tabName = "rec_automatic", icon = icon("magic")),
+                    menuItem("Send emails", tabName = "email", icon = icon("envelope")),
+                    menuItem("Load files", tabName = "load", icon = icon("file-upload")),
+                    tags$hr(style = "border-color: white; width:50%"),
+                    p(paste0("Version: ", golem::get_golem_version()), style = "margin-left:25px")
+                    
+        )
+      ),
+      dashboardBody(
+        tabItems(
+          
+          tabItem(tabName = "email",
+                  h3("Send emails"),
+                  mod_tab_email_ui("tab_email_ui_1")
+                  
+          ),
+          tabItem(tabName = "load",
+                  mod_tab_load_ui("tab_load_ui_1")
+          )
+        )
+      )
+      
     )
   )
 }
@@ -34,7 +59,10 @@ golem_add_external_resources <- function(){
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'CSIemail'
-    )
+    ),
+    shinyjs::useShinyjs(),
+    waiter::use_waiter(),
+    shinyFeedback::useShinyFeedback()
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 
   )
