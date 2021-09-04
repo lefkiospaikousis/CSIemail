@@ -2,6 +2,8 @@ default:
   golem_name: CSIemail
   golem_version: 0.0.0.9000
   app_prod: no
+  smtp_creds: gmail_creds
+  db_path: DB/csi_db.db
 production:
   app_prod: yes
 dev:
