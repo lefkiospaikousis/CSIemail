@@ -31,7 +31,7 @@ app_ui <- function(request) {
           ),
           tabItem(tabName = "email",
                   h3("Send emails"),
-                  mod_tab_email_ui("tab_email_ui_1")
+                  mod_tab_send_email_ui("tab_email_ui_1")
 
           ),
           tabItem(tabName = "dbase",

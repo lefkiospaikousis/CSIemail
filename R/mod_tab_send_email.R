@@ -1,4 +1,4 @@
-#' tab_email UI Function
+#' tab_send_email UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,7 +7,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_tab_email_ui <- function(id){
+mod_tab_send_email_ui <- function(id){
   ns <- NS(id)
   tagList(
     
@@ -18,7 +18,6 @@ mod_tab_email_ui <- function(id){
             tags$script("$('#browser').show();"),
             actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
             hr(width = "80%"),
-            #DT::DTOutput(ns("stores"))
             h4("List of stores with CSI"),
             reactable::reactableOutput(ns("stores"))
         )
@@ -27,10 +26,10 @@ mod_tab_email_ui <- function(id){
   )
 }
 
-#' tab_email Server Functions
+#' tab_send_email Server Functions
 #'
 #' @noRd 
-mod_tab_email_server <- function(id, csi, csi_date){
+mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -68,8 +67,8 @@ mod_tab_email_server <- function(id, csi, csi_date){
       
       validate(need(csi(), "Haven't loaded a CSI file yet!"))
       
-      # I use a reactive value because the check-marks (send_success) on the table are not
-      # updated. Don;t know why
+      # I use a reactive value because the check-marks (send_success) on the 
+      # table are not updated. Don' t know why
       
       rv$send_report %>% 
         reactable::reactable(
@@ -93,8 +92,9 @@ mod_tab_email_server <- function(id, csi, csi_date){
     
     observeEvent(rv$success_stores, {
       
-      # I dont use e updateTable because the check-marks (send_success) on the table are not
-      # updated. Don;t know why
+      # I use a reactive value because the check-marks (send_success) on the 
+      # table are not updated. Don' t know why
+      
       if(isTRUE(rv$send_ok)) {
         
         new_data <- 
@@ -108,6 +108,7 @@ mod_tab_email_server <- function(id, csi, csi_date){
       }
       
     })
+    
     
     observeEvent(input$send_emails, {
       
@@ -128,34 +129,32 @@ mod_tab_email_server <- function(id, csi, csi_date){
       
       waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
       
+      dta <- 
+        csi()[selected, ] %>% 
+        filter(!purrr::map_lgl(email, is.null))
+      
+      if(nrow(dta) == 0) {
+        
+        waiter::waiter_hide()
+        
+        shinyFeedback::showToast(
+          "error", "The selected stores do not have email addresses",
+          keepVisible = TRUE, .options = list(positionClass = "toast-top-center" )
+        )
+        
+        return()
+      }
+      
+      
       tryCatch(
         
         expr = {
           
-          dta <- 
-            csi()[selected, ] %>% 
-            filter(!purrr::map_lgl(email, is.null))
-          
-          
-          if(nrow(dta) == 0) {
-            
-            waiter::waiter_hide()
-            
-            shinyFeedback::showToast(
-              "error", "The selected stores do not have email addresses",
-              keepVisible = TRUE, .options = list(positionClass = "toast-top-center" )
-            )
-            
-            return()
-          }
-          
-          # 1. Save to disk first -----------------#
+          # 1. Save to disk first ------------------------------------#
           save_csi_to_disk(dta)
           
-          
-          # 2. Send emails -----------------#
-          
-          # Email mesg
+          # 2. Send emails -------------------------------------------#
+          # Email msg
           date_time <- blastula::add_readable_time()
           
           email_msg <-
@@ -169,14 +168,14 @@ mod_tab_email_server <- function(id, csi, csi_date){
               footer = blastula::md(glue::glue("Email sent on {date_time}."))
             )
           
-          # add attachment
+          # Add attachment
           dta <- 
             dta %>% 
             mutate(
               email_msg = purrr::map(filename, ~ blastula::add_attachment(email_msg, .x))
             )
           
-          # Send
+          # Send! Note that everything is saved in a nested tibble
           dta <- 
             dta %>% 
             mutate(
@@ -218,22 +217,27 @@ mod_tab_email_server <- function(id, csi, csi_date){
             ungroup() %>% 
             pull(store_code)
           
-          # 
           rv$send_ok <- TRUE
           
           waiter::waiter_hide()
           
           if(any(dta$send_success)) {
-            shinyFeedback::showToast("success", 
-                                     glue::glue("Emails have been send to {length(rv$success_stores)} stores"),
-                                     .options = list(
-                                       positionClass = "toast-top-center"
-                                     )
-                                     
+            
+            showModal(
+              modalDialog(
+                title = "Success sending emails(s)",
+                p(glue::glue("Emails have been send to {length(rv$success_stores)} store(s)")),
+                easyClose = TRUE
+              )
             )
+            
+            rv$send_ok <- TRUE
+            
           } else {
             
-            message_email_failure("There was a problem and no emails were send")
+            msg <- "NO emails were send! Please check the email addresses"
+            message_email_failure(msg)
+            print(msg) # log the issue
             rv$send_ok <- FALSE
             waiter::waiter_hide()
           }
@@ -242,8 +246,9 @@ mod_tab_email_server <- function(id, csi, csi_date){
         
         error = function(e) {
           
-          message_email_failure("There was a problem and no emails were send")
-          
+          msg <- "There was a problem and no emails were send"
+          message_email_failure(msg)
+          print(msg) # log the issue
           waiter::waiter_hide()
           
           rv$send_ok <- FALSE
@@ -253,9 +258,7 @@ mod_tab_email_server <- function(id, csi, csi_date){
       )
       
       
-      
-      
-      # 3. Remove files --------#
+      # 3. Remove files -----------------------------------------#
       tryCatch(
         
         expr = {
@@ -265,16 +268,18 @@ mod_tab_email_server <- function(id, csi, csi_date){
         
         error = function(e){
           
+          msg <- "Unable to delete the temporary CSI files on disk."
           shinyFeedback::showToast(
-            type = "warning",
-            message = "Unable to delete the temporary CSI files on disk. 
-                                   Emails thought have been sent!",
+            type = "warning", title = msg,
+            message = "Emails thought have been sent! Don't worry about those. Report this to Lefkios",
             keepVisible = TRUE,
             .options = list(
               closeButton = TRUE,
-              positionClass = "toast-top-center"
+              positionClass = "toast-top-left"
             )
           )
+          
+          print(msg) # log the issue
           
         }
       )
@@ -287,10 +292,10 @@ mod_tab_email_server <- function(id, csi, csi_date){
 }
 
 ## To be copied in the UI
-# mod_tab_email_ui("tab_email_ui_1")
+# mod_tab_send_email_ui("tab_send_email_ui_1")
 
 ## To be copied in the server
-# mod_tab_email_server("tab_email_ui_1")
+# mod_tab_send_email_server("tab_send_email_ui_1")
 
 
 # modal_resent <- function(session) {

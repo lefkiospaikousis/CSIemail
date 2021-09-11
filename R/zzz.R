@@ -12,8 +12,6 @@ safe_readXL <- function(...) "dummy"
 
 .onLoad <- function(libname, pkgname){
 
-  #safe_readXL <<- purrr::safely(readxl::read_excel)
-
   safe_readXL <<- purrr::safely(readxl::read_excel)
 }
 

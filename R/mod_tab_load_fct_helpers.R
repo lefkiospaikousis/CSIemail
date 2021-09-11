@@ -7,13 +7,6 @@ save_csi_to_disk <- function(dta) {
   
   stopifnot(all(c("store_code", "store_name", "data", "filename") %in% names(dta)))
 
-  # csi_by_store <- 
-  #   dta %>% 
-  #   # add the filename
-  #   mutate(
-  #     filename = glue::glue("{folder_path}/{store_code}_{format(lubridate::dmy(csi_date), '%d-%m-%Y')}.xlsx")
-  #   )
-  
     purrr::pwalk(
       select(dta, data, filename), 
       function(data, filename){

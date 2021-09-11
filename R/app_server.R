@@ -16,7 +16,7 @@ app_server <- function( input, output, session ) {
     
     csi = NULL,
     stores = NULL,
-    db_trigger = 1,
+    db_trigger = 0,
     csi_date = NULL
   )
   
@@ -52,15 +52,19 @@ app_server <- function( input, output, session ) {
   
   # 2. Send emails
   
-  mod_tab_email_server("tab_email_ui_1", reactive(rv$csi), reactive(rv$csi_date))
-  
+  mod_tab_send_email_server("tab_email_ui_1", reactive(rv$csi), reactive(rv$csi_date))
   
   
   
   # ----- #
   # Database
-  mod_tab_dbase_server("tab_dbase_ui_1", conn = email_db)
+  dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = email_db)
   
+  observeEvent(dbase$db_trigger, {
+    
+    rv$db_trigger   <- isolate(rv$db_trigger) + 1
+    
+  }, ignoreNULL = TRUE)
   
   output$outs <- renderPrint({
     

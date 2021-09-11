@@ -7,6 +7,7 @@
 labelMandatory(label)
 }
 \description{
-This function will be used later on to mark any fields in the entry form that are mandatory.
+This function will be used later on to mark any fields in the entry form that
+are mandatory.
 Taken from
 }

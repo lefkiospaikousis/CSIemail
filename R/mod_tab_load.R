@@ -115,8 +115,8 @@ mod_tab_load_server <- function(id, conn, trigger){
       
       req(csi(), rv$csi_date)
       
-      folder_path <- "SampleData/csi"
-      csi_date <- isolate(rv$csi_date) #"28/5/2021"
+      folder_path <- tempdir() 
+      csi_date <- isolate(rv$csi_date)
       
       csi() %>%
         tidyr::nest(data = -store_code) %>% 
