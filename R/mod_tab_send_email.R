@@ -29,7 +29,7 @@ mod_tab_send_email_ui <- function(id){
 #' tab_send_email Server Functions
 #'
 #' @noRd 
-mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
+mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -43,17 +43,48 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
       send_report = NULL
     )
     
+    tbl_emails <- reactive({
+      
+      trigger()
+      
+      conn %>% 
+        tbl("emails") %>% 
+        collect() %>% 
+        tidyr::nest(email = email) %>% 
+        mutate(email = purrr::map(email, ~pull(., email)))
+      
+    })
     
-    observeEvent(csi(), {
+    csi_by_store <- reactive({
+      
+      req(csi(), csi_date())
+      
+      folder_path <- tempdir() 
+      csi_date <- isolate(csi_date())
+      
+      csi() %>%
+        tidyr::nest(data = -store_code) %>% 
+        mutate(data =  purrr::map(data,
+                                  ~janitor::adorn_totals(., where = "row", fill = "", na.rm = TRUE, name = "Total", -AWB)
+        ) ) %>% 
+        # add the emails
+        left_join(tbl_emails(), by = c("store_code")) %>% 
+        # add the filename
+        mutate(
+          filename = glue::glue("{folder_path}/{store_code}_{format(lubridate::dmy(csi_date), '%d-%m-%Y')}.xlsx")
+        )
+      
+      
+    })
+    
+    observeEvent(csi_by_store(), {
       
       # Initialise the send report
-      
-      rv$send_report <-  csi() %>% 
+      rv$send_report <-  csi_by_store() %>% 
         select(-data, -filename) %>% 
         mutate(send_success = FALSE)
       
     })
-    
     
     
     selected_stores <- reactive({
@@ -65,12 +96,13 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
     
     output$stores <- reactable::renderReactable({
       
-      validate(need(csi(), "Haven't loaded a CSI file yet!"))
+      validate(need(csi_by_store(), "Haven't loaded a CSI file yet!"))
       
       # I use a reactive value because the check-marks (send_success) on the 
       # table are not updated. Don' t know why
       
       rv$send_report %>% 
+        select(-uid) %>% 
         reactable::reactable(
           striped = TRUE,
           defaultPageSize = 20,
@@ -98,7 +130,7 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
       if(isTRUE(rv$send_ok)) {
         
         new_data <- 
-          csi() %>% 
+          csi_by_store() %>% 
           select(-data, -filename) %>% 
           mutate(
             send_success = if_else(store_code %in% rv$success_stores, TRUE, FALSE)
@@ -112,7 +144,7 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
     
     observeEvent(input$send_emails, {
       
-      req(csi())
+      req(csi_by_store())
       
       selected <- isolate(selected_stores())
       
@@ -128,9 +160,9 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
       }
       
       waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
-      
+
       dta <- 
-        csi()[selected, ] %>% 
+        csi_by_store()[selected, ] %>% 
         filter(!purrr::map_lgl(email, is.null))
       
       if(nrow(dta) == 0) {
@@ -298,7 +330,7 @@ mod_tab_send_email_server <- function(id, csi, csi_date, trigger){
 # mod_tab_send_email_server("tab_send_email_ui_1")
 
 
-# modal_resent <- function(session) {
+# modal_resend <- function(session) {
 #   ns <- session$ns
 #   
 #   modalDialog(

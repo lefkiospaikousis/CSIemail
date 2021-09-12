@@ -38,7 +38,7 @@ app_server <- function( input, output, session ) {
   
   
   # 1. Load  csi
-  load <- mod_tab_load_server("tab_load_ui_1", conn = email_db, trigger = reactive(rv$db_trigger))
+  load <- mod_tab_load_server("tab_load_ui_1")
   
   observeEvent(load$stores, {
     
@@ -52,7 +52,12 @@ app_server <- function( input, output, session ) {
   
   # 2. Send emails
   
-  mod_tab_send_email_server("tab_email_ui_1", reactive(rv$csi), reactive(rv$csi_date))
+  mod_tab_send_email_server("tab_email_ui_1",
+                            conn = email_db,
+                            trigger = reactive(rv$db_trigger),
+                            reactive(rv$csi),
+                            reactive(rv$csi_date)
+                            )
   
   
   

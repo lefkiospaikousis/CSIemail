@@ -27,10 +27,8 @@ mod_tab_load_ui <- function(id){
 
 #' tab_load Server Functions
 #'
-#' @param conn The connection to the RSQLite
-#' @param trigger Numeric. The trigger if the emails in the db is updated
 #' @noRd 
-mod_tab_load_server <- function(id, conn, trigger){
+mod_tab_load_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -56,8 +54,6 @@ mod_tab_load_server <- function(id, conn, trigger){
       
       temp <- safe_readXL(file$datapath)
       
-      #temp <- readxl::read_excel(file$datapath) 
-      
       if(is.null(temp$result)){
         
         #error_in_csi()
@@ -76,7 +72,8 @@ mod_tab_load_server <- function(id, conn, trigger){
       
       rv$csi_date <- get_csi_date(dta)
       
-      out <- process_csi(dta)
+      out <- process_csi(dta) 
+        
       
       shinyFeedback::hideFeedback("file_csi")
       shinyFeedback::showFeedbackSuccess("file_csi", "All good")
@@ -86,57 +83,12 @@ mod_tab_load_server <- function(id, conn, trigger){
     })
     
     
-    stores <- reactive({
-      
-      req(csi())
-      
-      unique(csi()$store_code)
-      # distinct(csi(), store_name, store_code) %>% 
-      #   tibble::deframe()
-      
-    })
-    
-    
-    # nested tibble
-    tbl_emails <- reactive({
-      
-      trigger()
-      
-      conn %>% 
-        tbl("emails") %>% 
-        collect() %>% 
-        tidyr::nest(email = email) %>% 
-        mutate(email = purrr::map(email, ~pull(., email)))
-      
-    })
-    
-    
-    csi_by_store <- reactive({
-      
-      req(csi(), rv$csi_date)
-      
-      folder_path <- tempdir() 
-      csi_date <- isolate(rv$csi_date)
-      
-      csi() %>%
-        tidyr::nest(data = -store_code) %>% 
-        mutate(data =  purrr::map(data,
-                                  ~janitor::adorn_totals(., where = "row", fill = "", na.rm = TRUE, name = "Total", -AWB)
-        ) ) %>% 
-        # add the emails
-        left_join(tbl_emails(), by = c("store_code")) %>% 
-        # add the filename
-        mutate(
-          filename = glue::glue("{folder_path}/{store_code}_{format(lubridate::dmy(csi_date), '%d-%m-%Y')}.xlsx")
-        )
-      
-      
-    })
+    stores <- reactive({unique(csi()$store_code)})
     
     
     output$store_csi_UI <- renderUI({
       
-      req(csi_by_store())
+      req(csi())
       
       tagList(
         fluidRow(
@@ -149,41 +101,33 @@ mod_tab_load_server <- function(id, conn, trigger){
       
     })
     
-    output$store_csi <- DT::renderDT({
-      
-      req(csi_by_store())
-      
-      csi_by_store() %>% 
-        filter(store_code == input$store) %>% 
-        select(data) %>% 
-        tidyr::unnest(cols = c(data)) %>% 
-        datatable(
-          rownames = FALSE,
-          options = list(
-             paging = FALSE,
-             ordering = FALSE
-          )
-        )
-        
-    })
-    
     # Save to rv for return
     observeEvent(stores(), {
       
-      rv$csi    <- csi_by_store()
+      rv$csi    <- csi()
       rv$stores <- stores()
       
       updateSelectInput(inputId = "store", choices = rv$stores)
     })
     
     
-    output$csi <- DT::renderDT({
+    output$store_csi <- DT::renderDT({
       
+      req(csi())
+     
       csi() %>% 
+        tidyr::nest(data = -store_code) %>% 
+        mutate(data =  purrr::map(data,
+                                  ~janitor::adorn_totals(., where = "row", fill = "", na.rm = TRUE, name = "Total", -AWB)
+        ) ) %>% 
+        filter(store_code == input$store) %>% 
+        select(data) %>% 
+        tidyr::unnest(cols = c(data)) %>% 
         datatable(
+          rownames = FALSE,
           options = list(
-            scrollX = TRUE, scrollY = "220px",
-            rownames = FALSE
+            paging = FALSE,
+            ordering = FALSE
           )
         )
     })
