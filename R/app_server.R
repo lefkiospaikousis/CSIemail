@@ -37,7 +37,6 @@ app_server <- function( input, output, session ) {
     
   })
   
-  
   # 1. Load  csi
   load <- mod_tab_load_server("tab_load_ui_1")
   

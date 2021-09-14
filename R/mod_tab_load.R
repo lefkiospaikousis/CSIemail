@@ -56,13 +56,11 @@ mod_tab_load_server <- function(id){
       
       if(is.null(temp$result)){
         
-        #error_in_csi()
         shinyFeedback::hideFeedback("file_csi")
         shinyFeedback::showFeedbackDanger("file_csi", "This is not a valid csi file")
         
         return(NULL)
       }
-      
       
       dta <- temp$result %>% 
         rename(
@@ -74,7 +72,6 @@ mod_tab_load_server <- function(id){
       
       out <- process_csi(dta) 
         
-      
       shinyFeedback::hideFeedback("file_csi")
       shinyFeedback::showFeedbackSuccess("file_csi", "All good")
       
@@ -131,7 +128,6 @@ mod_tab_load_server <- function(id){
           )
         )
     })
-    
     
     # # Save in database --------------------------------------------------------
     # 
@@ -194,7 +190,6 @@ mod_tab_load_server <- function(id){
     #   }
     #   
     # })
-    
     
     return(rv)
     
