@@ -1,10 +1,10 @@
 default:
   golem_name: CSIemail
-  golem_version: 0.0.0.9000
+  golem_version: 0.0.1
   app_prod: no
   smtp_creds: gmail_creds
   db_path: DB/csi_db.db
 production:
   app_prod: yes
 dev:
-  golem_wd: !expr here::here()
+  golem_wd: C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail
