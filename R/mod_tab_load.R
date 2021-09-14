@@ -17,7 +17,7 @@ mod_tab_load_ui <- function(id){
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
                     accept = c(".xlsx", ".xls"))
           #DT::DTOutput(ns("csi")),
-          #actionButton(ns("btn_save_csi"), "Save to DB")
+          #actionButton(ns("btn_save_csi"), "Save to Database")
       )
     ),
     uiOutput(ns("store_csi_UI"))

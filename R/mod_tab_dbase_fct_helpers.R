@@ -16,9 +16,13 @@ appCSS <- ".mandatory_star { color: red; }"
 
 #' Entry form to add a new store & email
 #' a modalDialog. Needs to be a function to run properly (lazy loading?)
-entry_form <- function(session) {
+entry_form <- function(session, edit = FALSE, store = NULL) {
   
   ns <- session$ns
+  
+  if(edit && is.null(store)) {
+    stop("No store given")
+    }
   
   modalDialog(
     tagList(
@@ -33,6 +37,42 @@ entry_form <- function(session) {
     )
     
     , footer = NULL
+  )
+  
+}
+
+#' Modal dialog for delete verification
+#' 
+#' @param session The current session object
+#' @param store A one-row dataframe of the store
+#' @noRd
+verify_delete <- function(session, store) {
+  
+  stopifnot(nrow(store) == 1)
+  ns <- session$ns
+  
+  modalDialog(
+    div(
+      style = "padding: 10px;",
+      class = "text-center",
+      h4(
+        style = "line-height: 1.00;",
+        paste0(
+          'Are you sure you want to delete the email "', 
+          store$email, '" from store "',
+          store$store_name, '"?'
+        )
+      )
+    ),
+    title = "Delete a store's email",
+    size = "m",
+    footer = list(
+      modalButton("Cancel"),
+      actionButton(
+        ns("submit_delete"),"Delete", class = "btn-danger",
+        style="color: #fff;"
+      )
+    )
   )
   
 }
@@ -53,3 +93,30 @@ append_data <- function(conn, table, value){
   DBI::dbAppendTable(conn, name = table, value = value)
   
 }
+
+#' removes rows from DB
+#' @noRd
+delete_data <- function(conn, table, col, ids = character(0)){
+  
+  if (!table %in% DBI::dbListTables(conn)) {
+    stop("No such table in the DB")
+  }
+  
+  # col <- switch (table,
+  #                sage     = "sage_id",
+  #                hellenic = "trans_id",
+  #                BOC      = "trans_id",
+  #                rec_info = "sage_id"
+  # )
+  
+  sql <- paste0('DELETE FROM ', table, ' WHERE ', col, ' = :x')
+  
+  rs <- DBI::dbSendStatement(conn, sql)
+  
+  DBI::dbBind(rs, params = list(x = ids))
+  
+  DBI::dbClearResult(rs)
+  
+}
+
+

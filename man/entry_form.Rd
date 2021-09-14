@@ -5,7 +5,7 @@
 \title{Entry form to add a new store & email
 a modalDialog. Needs to be a function to run properly (lazy loading?)}
 \usage{
-entry_form(session)
+entry_form(session, edit = FALSE, store = NULL)
 }
 \description{
 Entry form to add a new store & email
