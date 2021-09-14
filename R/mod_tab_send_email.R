@@ -39,7 +39,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
     
     rv <- rv(
       send_ok = FALSE,
-      success_stores = NULL,
+      success_emails = NULL,
       send_report = NULL
     )
     
@@ -122,7 +122,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
     
     
     
-    observeEvent(rv$success_stores, {
+    observeEvent(rv$success_emails, {
       
       # I use a reactive value because the check-marks (send_success) on the 
       # table are not updated. Don' t know why
@@ -133,7 +133,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
           csi_by_store() %>% 
           select(-data, -filename) %>% 
           mutate(
-            send_success = if_else(store_code %in% rv$success_stores, TRUE, FALSE)
+            send_success = if_else(email %in% rv$success_emails, TRUE, FALSE)
           )
         
         rv$send_report <- new_data
@@ -242,12 +242,12 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
           
           
           # Return Success status
-          rv$success_stores <- 
+          rv$success_emails <- 
             dta %>% 
             rowwise() %>% 
             filter(isTRUE(send_success)) %>% 
             ungroup() %>% 
-            pull(store_code)
+            pull(email)
           
           rv$send_ok <- TRUE
           
@@ -258,7 +258,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
             showModal(
               modalDialog(
                 title = "Success sending emails(s)",
-                p(glue::glue("Emails have been send to {length(rv$success_stores)} store(s)")),
+                p(glue::glue("Emails have been send to {length(rv$success_emails)} store(s)")),
                 easyClose = TRUE
               )
             )
