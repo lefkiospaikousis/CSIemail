@@ -169,7 +169,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
         
         waiter::waiter_hide()
         
-        shinyFeedback::showToast(
+        showToast(
           "error", "The selected stores do not have email addresses",
           keepVisible = TRUE, .options = list(positionClass = "toast-top-center" )
         )
@@ -301,7 +301,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
         error = function(e){
           
           msg <- "Unable to delete the temporary CSI files on disk."
-          shinyFeedback::showToast(
+          showToast(
             type = "warning", title = msg,
             message = "Emails thought have been sent! Don't worry about those. Report this to Lefkios",
             keepVisible = TRUE,
