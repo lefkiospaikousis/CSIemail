@@ -225,7 +225,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
                       to      = address, 
                       from    = "lefkiospaik@gmail.com",
                       subject = paste0("CSI date: ", csi_date()),
-                      credentials = blastula::creds_file("gmail_creds")
+                      credentials = blastula::creds_key("gmail") # blastula::creds_file("gmail_creds")
                     )
                   }
                 )
