@@ -15,10 +15,14 @@ mod_tab_dbase_ui <- function(id){
       col_8(
         box(width = NULL,
             div(id = "tbl_buttons",
-                actionButton(ns("btn_add"), "Add", icon("plus")),
-                actionButton(ns("btn_edit"), "Edit", icon("edit")),
-                #actionButton(ns("btn_copy"), "Copy", icon("copy")),
-                actionButton(ns("btn_delete"), "Delete", icon("trash-alt")),
+                actionButton(ns("btn_add"), "Add", icon("plus"), 
+                             style="color: #fff; background-color: #86af49"),
+                actionButton(ns("btn_edit"), "Edit", icon("edit"), 
+                             style="color: #fff; background-color: #337ab7"),
+                actionButton(ns("btn_delete"), "Delete", icon("trash-alt"), 
+                             class = "btn-danger",
+                             style="color: #fff"),
+                
                 style = "margin-bottom:8px" 
             ),
             br(),
@@ -143,7 +147,7 @@ mod_tab_dbase_server <- function(id, conn){
               )
               
               showToast("success",
-                        paste0("Store: ",  form_data()$store_code, " was edited in the database"),
+                        glue("Store: {form_data()$store_name} - {form_data()$store_code} was edited in the database"),
                         .options = list(positionClass = "toast-top-center")
               )
               
@@ -159,6 +163,7 @@ mod_tab_dbase_server <- function(id, conn){
           
           error = function(e) {
             
+            print(e)
             showModal(modalDialog(title = "Unable to add/ edit store to the database"),
                       p("Cannot add/ edit this to the database. Something is wrong"),
                       p("Maybe the connection to the database is lost. Refresh the webage and try again")

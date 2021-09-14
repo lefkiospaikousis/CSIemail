@@ -24,9 +24,13 @@ entry_form <- function(session, edit = FALSE, store = NULL) {
     stop("No store given")
     }
   
+  
+  mode <- if(edit) {"Edit"} else {"Add"}
+  title <- glue("{mode} a store")
+  
   modalDialog(
     tagList(
-      h3("Add a new store"),
+      h3(title),
       textInput(ns("store_code"), "Store Code"),
       textInput(ns("store_name"), "Store Name"),
       textInput(ns("email"), "Email")
