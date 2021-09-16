@@ -69,10 +69,11 @@ mod_tab_dbase_server <- function(id, conn){
     output$tbl_emails <- renderDT({
       
       tbl_emails() %>%
-        #select(-uid) %>% 
+        select(-uid) %>% 
         datatable(
           options = list()
           , rownames = FALSE
+          , colnames = c("Store Code" = "store_code", "Store Name" = "store_name", "Email" = "email")
           , selection = "single"
           , caption = "The ACS stores and associated email(s)"
           , filter = "top"
@@ -97,7 +98,7 @@ mod_tab_dbase_server <- function(id, conn){
       if(is.null(ids_selected())) {
         
         showToast("warning", "Please select a store on the table first",
-                                 .options = list(positionClass = "toast-top-center")
+                  .options = list(positionClass = "toast-top-center")
         )
         
       } else {
@@ -122,55 +123,56 @@ mod_tab_dbase_server <- function(id, conn){
     
     observeEvent(input$submit, {
       
-        tryCatch(
+      tryCatch(
+        
+        expr = {
           
-          expr = {
+          if(is.null(rv$store_to_edit)) {
             
-            if(is.null(rv$store_to_edit)) {
-              
-              # new store/ email
+            # new store/ email
             append_data(conn, "emails", form_data())
             
-              showToast("success",
-                        paste0("Store: ",  form_data()$store_code, " was added in the database"),
-                        .options = list(positionClass = "toast-top-center")
-              )
-
-            } else {
-              
-              # edit store
-              DBI::dbExecute(
-                conn,
-                "UPDATE emails SET store_name=$store_name, store_code=$store_code, email=$email WHERE uid=$uid",
-                params = as.list(form_data())
-                
-              )
-              
-              showToast("success",
-                        glue("Store: {form_data()$store_name} - {form_data()$store_code} was edited in the database"),
-                        .options = list(positionClass = "toast-top-center")
-              )
-              
-              rv$store_to_edit = NULL
-              
-            }
-            
-            removeModal()
-            
-            rv$db_trigger <- isolate(rv$db_trigger) + 1
-            
-          },
-          
-          error = function(e) {
-            
-            print(e)
-            showModal(modalDialog(title = "Unable to add/ edit store to the database"),
-                      p("Cannot add/ edit this to the database. Something is wrong"),
-                      p("Maybe the connection to the database is lost. Refresh the webage and try again")
+            showToast("success",
+                      paste0("Store: ",  form_data()$store_code, " was added in the database"),
+                      .options = list(positionClass = "toast-top-center")
             )
-          } 
-        )
+            
+          } else {
+            
+            # edit store
+            DBI::dbExecute(
+              conn,
+              "UPDATE emails SET store_name=$store_name, store_code=$store_code, email=$email WHERE uid=$uid",
+              params = as.list(form_data())
+              
+            )
+            
+            showToast("success",
+                      glue("Store: {form_data()$store_name} - {form_data()$store_code} was edited in the database"),
+                      .options = list(positionClass = "toast-top-center")
+            )
+            
+            rv$store_to_edit = NULL
+            
+          }
+          
+          removeModal()
+          
+          rv$db_trigger <- isolate(rv$db_trigger) + 1
+          
+        },
         
+        error = function(e) {
+          
+          print(e)
+          showModal(modalDialog(title = "Unable to add/ edit store to the database",
+                                p("Cannot add/ edit this to the database. Something is wrong"),
+                                p("Maybe the connection to the database is lost. Refresh the webage and try again")
+          )
+          )
+        } 
+      )
+      
       
       #rv$form_mode <- NULL
     })
@@ -206,7 +208,7 @@ mod_tab_dbase_server <- function(id, conn){
       if(is.null(ids_selected())) {
         
         showToast("warning", "Please select a store on the table first",
-                                 .options = list(positionClass = "toast-top-center")
+                  .options = list(positionClass = "toast-top-center")
         )
         
       } else {

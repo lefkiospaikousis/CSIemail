@@ -4,6 +4,7 @@
 #' This function will be used later on to mark any fields in the entry form that
 #' are mandatory.
 #' Taken from 
+#' @noRd
 labelMandatory <- function(label) {
   tagList(
     label,
@@ -16,6 +17,7 @@ appCSS <- ".mandatory_star { color: red; }"
 
 #' Entry form to add a new store & email
 #' a modalDialog. Needs to be a function to run properly (lazy loading?)
+#' @noRd
 entry_form <- function(session, edit = FALSE, store = NULL) {
   
   ns <- session$ns
@@ -84,9 +86,9 @@ verify_delete <- function(session, store) {
 
 #' Appends rows into a table
 #' 
+#' @param conn The connection object
 #' @param table String, The name of the DB table
 #' @param value The dataframe of values.  See DBI::dbAppendTable()
-#' @noRd
 #' @export
 append_data <- function(conn, table, value){
   
@@ -97,6 +99,7 @@ append_data <- function(conn, table, value){
   DBI::dbAppendTable(conn, name = table, value = value)
   
 }
+
 
 #' removes rows from DB
 #' @noRd

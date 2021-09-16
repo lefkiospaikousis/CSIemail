@@ -1,7 +1,9 @@
 # Functions that do data validation of loaded files
 
 
-
+#' Check that the file has the correct type
+#' 
+#' @param path The path of the file
 check_filetype <- function(path){
   
   message <- "No valid type of the file. The valid files are .xlsx, .xls, and .csv"
@@ -17,17 +19,18 @@ check_filetype <- function(path){
   
 }
 
-#' Check the column names of a loaded Bank dataset
-#' @param dta The loaded data
-#' @param bank String length 1. The name of the bank.Takes the global value \code{banks}
-#' @return NULL if all ok, else a character vector of names that are missing
-check_var_names_bank <- function(dta, bank){
+
+#' Check that the data supplied has the correct variable names
+#' 
+#' @param dta Tibble. The uploaded dataset?
+#' @param type String length 1. One of `csi` or `ticket`
+check_var_names <- function(dta, type){
   
-  if(!bank %in% names(column_names)){
-    stop("No col names defiend for this bank")
+  if(!type %in% names(column_names)){
+    stop("No col names defiend for this file")
   }
   
-  valid_names <- column_names[[bank]]$col_label
+  valid_names <- column_names[[type]]$col_label
   
   nms <- names(dta)
   
@@ -45,26 +48,3 @@ check_var_names_bank <- function(dta, bank){
   
 }
 
-#' Check the column names of a loaded SAGE dataset
-#' @param dta The loaded data
-#' @return NULL if all ok, else a character vector of names that are missing
-check_var_names_SAGE <- function(dta){
-  
-  
-  valid_names <- column_names[["SAGE"]]$col_label
-  
-  nms <- names(dta)
-  
-  if(all( valid_names %in% nms)){
-    
-    return(NULL)
-    
-  } else{
-    
-    miss_cols <-  setdiff(valid_names, nms)
-    
-    return(miss_cols)
-    
-  }
-  
-}
