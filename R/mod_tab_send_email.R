@@ -159,7 +159,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
         return()
       }
       
-      waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
+      
 
       dta <- 
         csi_by_store()[selected, ] %>% 
@@ -167,7 +167,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
       
       if(nrow(dta) == 0) {
         
-        waiter::waiter_hide()
+        # waiter::waiter_hide()
         
         showToast(
           "error", "The selected stores do not have email addresses",
@@ -176,6 +176,22 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
         
         return()
       }
+      
+      showModal(verify_send(session, dta))
+      
+    })
+    
+    
+    
+    observeEvent(input$confirm_send, {
+      
+      removeModal()
+      
+      waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
+      
+      dta <- 
+        csi_by_store()[isolate(selected_stores()), ] %>% 
+        filter(!purrr::map_lgl(email, is.null))
       
       
       tryCatch(
@@ -255,10 +271,18 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
           
           if(any(dta$send_success)) {
             
+            n_stores <- length(unique(
+              filter(dta, email %in% rv$success_emails) %>% .$store_code
+            ))
+            
             showModal(
               modalDialog(
                 title = "Success sending emails(s)",
-                p(glue::glue("Emails have been send to {length(rv$success_emails)} store(s)")),
+                p(glue::glue("
+                             {length(rv$success_emails)} email(s) have been send to 
+                             {n_stores} store(s)
+                             ")
+                ),
                 easyClose = TRUE
               )
             )
@@ -315,6 +339,8 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
           
         }
       )
+      
+      waiter::waiter_hide()
       
     })
     
