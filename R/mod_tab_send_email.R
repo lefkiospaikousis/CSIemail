@@ -13,11 +13,12 @@ mod_tab_send_email_ui <- function(id){
     
     fluidRow(
       col_8(
-        box(title = "", width = NULL,
+        box(title = "", width = 10, 
             # actionButton("browser", "browser"),
             tags$script("$('#browser').show();"),
             actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
             hr(width = "80%"),
+            htmlOutput(ns("csi_type_UI")),
             h4("List of stores with CSI"),
             reactable::reactableOutput(ns("stores"))
         )
@@ -29,7 +30,7 @@ mod_tab_send_email_ui <- function(id){
 #' tab_send_email Server Functions
 #'
 #' @noRd 
-mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
+mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -55,27 +56,54 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
       
     })
     
+    
+    output$csi_type_UI <- renderText({
+      
+      paste0("<b>CSI date: </b>", csi_date(), "<br>", "<b>CSI type: </b>", csi_type())
+    })
+    
+    
     csi_by_store <- reactive({
       
       req(csi(), csi_date())
       
       folder_path <- tempdir() 
-      csi_date <- isolate(csi_date())
       
-      csi() %>%
-        tidyr::nest(data = -store_code) %>% 
-        mutate(data =  purrr::map(data,
-                                  ~janitor::adorn_totals(., where = "row", fill = "", na.rm = TRUE, name = "Total", -AWB)
-        ) ) %>% 
-        # add the emails
+      csi_date <- switch (csi_type(),
+                          
+                          "ACS CSI" = format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
+                          "Ticket Hour" = gsub("/", "_", isolate(csi_date())),
+                          stop("Wrong csi type")
+      )
+      
+      vars_sum <- c("os", "debit", "credit")
+      
+      csi_nest <- 
+        csi() %>%
+        tidyr::nest(data = -store_code)
+      
+      csi_nest_total <- switch (csi_type(),
+                                # ACS CSI
+                                "ACS CSI" = csi_nest %>% 
+                                  mutate(data =  purrr::map(data, ~ add_totals(., -AWB)))
+                                ,
+                                # Ticket hour CSI
+                                "Ticket Hour" = csi_nest %>% 
+                                  mutate(data =  purrr::map(data, ~ add_totals(., all_of(vars_sum))))
+                                ,
+                                stop("Unknown CSI type", .call = FALSE)
+      )
+      
+      
+      # add the emails and filename
+      csi_nest_total %>% 
         left_join(tbl_emails(), by = c("store_code")) %>% 
-        # add the filename
         mutate(
-          filename = glue::glue("{folder_path}/{store_code}_{format(lubridate::dmy(csi_date), '%d-%m-%Y')}.xlsx")
+          filename = glue::glue("{folder_path}/{store_code}_{csi_date}.xlsx")
         )
       
-      
     })
+    
     
     observeEvent(csi_by_store(), {
       
@@ -112,10 +140,20 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
           onClick = "select",
           selection = "multiple",
           columns = list(
-            send_success =reactable::colDef(cell = function(value) {
-              # Render as an X mark or check mark
-              if (isFALSE(value)) "\u274c No" else "\u2714\ufe0f Yes"
-            })
+            
+            send_success = reactable::colDef(name = "Email is sent?", 
+                                             cell = function(value) {
+                                               # Render as an X mark or check mark
+                                               if (isFALSE(value)) "\u274c No" else "\u2714\ufe0f Yes"
+                                             }),
+            email        = reactable::colDef(name = "Email", 
+                                             cell = function(value){
+                                               
+                                               if(is.null(value)) "" else value
+                                             }),
+            store_name   = reactable::colDef(name = "Store name"),
+            
+            store_code   = reactable::colDef(name = "Store code")
           )
         )
     })
@@ -160,14 +198,12 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi, csi_date){
       }
       
       
-
+      
       dta <- 
         csi_by_store()[selected, ] %>% 
         filter(!purrr::map_lgl(email, is.null))
       
       if(nrow(dta) == 0) {
-        
-        # waiter::waiter_hide()
         
         showToast(
           "error", "The selected stores do not have email addresses",

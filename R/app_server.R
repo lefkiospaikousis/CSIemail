@@ -19,6 +19,7 @@ app_server <- function( input, output, session ) {
     csi = NULL,
     stores = NULL,
     db_trigger = 0,
+    csi_type = NULL,
     csi_date = NULL
   )
   
@@ -46,6 +47,7 @@ app_server <- function( input, output, session ) {
     rv$stores   <- load$stores
     rv$csi      <- load$csi
     rv$csi_date <- load$csi_date
+    rv$csi_type <- load$csi_type
     
   }, ignoreNULL = TRUE)
   
@@ -56,6 +58,7 @@ app_server <- function( input, output, session ) {
   mod_tab_send_email_server("tab_email_ui_1",
                             conn = email_db,
                             trigger = reactive(rv$db_trigger),
+                            reactive(rv$csi_type),
                             reactive(rv$csi),
                             reactive(rv$csi_date)
                             )

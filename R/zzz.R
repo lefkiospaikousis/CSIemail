@@ -9,9 +9,12 @@
 #' @param ... temporary
 safe_readXL <- function(...) "dummy"
 
+safe_readCSV <- function(...) "dummy"
 
 .onLoad <- function(libname, pkgname){
 
   safe_readXL <<- purrr::safely(readxl::read_excel)
+  
+  safe_readCSV <<- purrr::safely(readr::read_csv)
 }
 

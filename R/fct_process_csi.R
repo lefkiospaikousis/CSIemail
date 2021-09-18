@@ -41,15 +41,27 @@ process_csi <- function(csi) {
 #' Return the date of the csi file
 #' 
 #' @param csi A tibble of the csi
+#' @param csi_type String length 1. One of c("ACS CI", "Ticket Hour")
 #' @return The csi date. Character type
 #' @noRd
-get_csi_date <- function(csi){
+get_csi_date <- function(csi, csi_type){
   
   stopifnot(inherits(csi, "data.frame"))
   stopifnot("date" %in% names(csi))
   
-  csi$date[1] %>% 
-    stringr::str_extract("(?<=: ).+") 
+  date <- switch(csi_type,
+                 "ACS CSI" =  csi$date[1] %>% 
+                   stringr::str_extract("(?<=: ).+"),
+                 
+                 "Ticket Hour" = paste0(min(csi$date, na.rm = TRUE), 
+                                        " - ", 
+                                        max(csi$date, na.rm = TRUE)
+                                        ),
+                 
+                 stop("Invalid CSI type")
+                 )
+  
+  date
   
 }
 

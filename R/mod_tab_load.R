@@ -14,6 +14,7 @@ mod_tab_load_ui <- function(id){
     tags$hr(style="border-color: black;"),
     fluidRow(
       box(title = p("Load a CSI Statement", style="color:#B88C4A"),
+          radioButtons(ns("csi_type"), "Type of CSI", choices = c("ACS CSI", "Ticket Hour"), inline = TRUE),
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
                     accept = c(".xlsx", ".xls"))
       )
@@ -33,8 +34,14 @@ mod_tab_load_server <- function(id){
     rv <- rv(
       csi = NULL,
       stores = NULL,
-      csi_date = NULL
+      csi_date = NULL,
+      csi_type = NULL
     )
+    
+    
+    observeEvent(input$csi_type, {
+      rv$csi_type <- input$csi_type
+    })
     
     # csi ---
     csi <- reactive({
@@ -43,37 +50,68 @@ mod_tab_load_server <- function(id){
       
       file = input$file_csi
       
-      excel <- readxl::excel_format(file$name)
+      #browser()
       
-      if(is.na(excel)){
-        shinyFeedback::showFeedbackDanger("file_csi", "This is not an excel file")
+      file_type <- tools::file_ext(file$name)
+      
+      csi_type <- input$csi_type
+      
+      correct_file_type <- switch (csi_type,
+                                   "ACS CSI" = c("xls", "xlsx"),
+                                   "Ticket Hour" = "csv",
+                                   stop("invalid type", .call = FALSE)
+      )
+      
+      
+      if(!file_type %in% correct_file_type ) {
+        
+        msg <- paste0("This is not a valid ", csi_type, " file. We need a ", paste0(correct_file_type, collapse = '/'), " file")
+        
+        shinyFeedback::hideFeedback("file_csi")
+        shinyFeedback::showFeedbackDanger("file_csi", msg)
+        
         return()
       }
       
-      temp <- safe_readXL(file$datapath)
+      dta <- switch (csi_type,
+                      "ACS CSI" = read_acs_csi(file$datapath),
+                      "Ticket Hour" = read_ticket_hour(file$datapath),
+                      stop("Have you added a new type malaka?", .call = FALSE)
+      ) 
       
-      if(is.null(temp$result)){
+      # 
+      if(is.null(dta)){
         
         shinyFeedback::hideFeedback("file_csi")
-        shinyFeedback::showFeedbackDanger("file_csi", "This is not a valid csi file")
+        shinyFeedback::showFeedbackDanger("file_csi", "Something went wrong with your CSI file. Probably not a valid csi file")
         
         return(NULL)
       }
       
-      dta <- temp$result %>% 
-        rename(
-          date = ...1,
-          store_code = ...2
-        )
       
-      rv$csi_date <- get_csi_date(dta)
-      
-      out <- process_csi(dta) 
+      # Finished
       
       shinyFeedback::hideFeedback("file_csi")
-      shinyFeedback::showFeedbackSuccess("file_csi", "All good")
+      shinyFeedback::showFeedbackSuccess("file_csi", paste0(csi_type, " file read OK!"))
       
-      out
+      
+      
+      rv$csi_date <- get_csi_date(dta, csi_type)
+      
+      
+      # Extra Processing of the files
+      
+      dta <- switch (csi_type,
+                     
+                     "ACS CSI" = process_csi(dta),
+                     
+                     "Ticket Hour" = dta,
+                     
+                     stop("Have you added a new type malaka?", .call = FALSE)
+      ) 
+      
+      
+      dta
       
     })
     
@@ -84,7 +122,7 @@ mod_tab_load_server <- function(id){
       
       tagList(
         fluidRow(
-          box(title = "View a store's csi",
+          box(title = "View a store's csi", width = 8,
               selectInput(ns("store"), "Select a store", 
                           choices = unique(csi()$store_code)
               ),
@@ -103,17 +141,24 @@ mod_tab_load_server <- function(id){
       
     })
     
+    
     store_csi <- reactive({
       
       req(csi())
+      
+      vars_sum <- c("os", "debit", "credit")
+      
       csi() %>% 
         filter(store_code == input$store) %>% 
         tidyr::nest(data = -store_code) %>% 
-        mutate(data =  purrr::map(data,
-                                  ~janitor::adorn_totals(., where = "row", fill = "", 
-                                                         na.rm = TRUE, name = "Total", -AWB
-                                  )
-        ) ) %>% 
+        {
+          if(input$csi_type == "ACS CSI") {
+            mutate(., data =  purrr::map(data, ~add_totals(., -AWB)))
+          } else {
+            mutate(., data =  purrr::map(data, ~add_totals(., all_of(vars_sum))))
+          }
+        } %>% 
+        #mutate(data =  purrr::map(data, ~add_totals(., -AWB))) %>% 
         filter(store_code == input$store) %>% 
         select(data) %>% 
         tidyr::unnest(cols = c(data))
