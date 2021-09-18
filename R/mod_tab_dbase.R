@@ -97,7 +97,7 @@ mod_tab_dbase_server <- function(id, conn){
       
       if(is.null(ids_selected())) {
         
-        showToast("warning", "Please select a store on the table first",
+        showToast("warning", "Please select a row on the table",
                   .options = list(positionClass = "toast-top-center")
         )
         
@@ -207,7 +207,7 @@ mod_tab_dbase_server <- function(id, conn){
       
       if(is.null(ids_selected())) {
         
-        showToast("warning", "Please select a store on the table first",
+        showToast("warning", "Please select a row on the table",
                   .options = list(positionClass = "toast-top-center")
         )
         

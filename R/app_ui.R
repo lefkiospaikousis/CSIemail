@@ -27,10 +27,9 @@ app_ui <- function(request) {
           
           tabItem(tabName = "load",
                   mod_tab_load_ui("tab_load_ui_1")
-                  #, verbatimTextOutput("outs")
           ),
           tabItem(tabName = "email",
-                  h3("Send emails"),
+                  h3("Select stores to send emails to"),
                   mod_tab_send_email_ui("tab_email_ui_1")
 
           ),
