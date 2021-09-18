@@ -50,8 +50,6 @@ mod_tab_load_server <- function(id){
       
       file = input$file_csi
       
-      #browser()
-      
       file_type <- tools::file_ext(file$name)
       
       csi_type <- input$csi_type
@@ -158,7 +156,6 @@ mod_tab_load_server <- function(id){
             mutate(., data =  purrr::map(data, ~add_totals(., all_of(vars_sum))))
           }
         } %>% 
-        #mutate(data =  purrr::map(data, ~add_totals(., -AWB))) %>% 
         filter(store_code == input$store) %>% 
         select(data) %>% 
         tidyr::unnest(cols = c(data))

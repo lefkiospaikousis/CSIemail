@@ -48,7 +48,6 @@ mod_tab_dbase_server <- function(id, conn){
     
     rv <- rv(
       db_trigger = 0,
-      #form_mode = NULL,  # edit or new
       store_to_edit = NULL
     )
     
@@ -86,14 +85,11 @@ mod_tab_dbase_server <- function(id, conn){
     
     observeEvent(input$btn_add, {
       
-      #rv$form_mode <- "add"
       showModal(entry_form(session))
       
     })
     
     observeEvent(input$btn_edit, {
-      
-      #rv$form_mode <- "edit"
       
       if(is.null(ids_selected())) {
         
@@ -114,7 +110,6 @@ mod_tab_dbase_server <- function(id, conn){
         updateTextInput(session, "store_name", value = store$store_name)
         updateTextInput(session, "email", value = store$email)
         
-        #rv$edit_mode = TRUE
         rv$store_to_edit = store
       }
       
@@ -173,8 +168,6 @@ mod_tab_dbase_server <- function(id, conn){
         } 
       )
       
-      
-      #rv$form_mode <- NULL
     })
     
     observeEvent(input$email, {
@@ -203,8 +196,6 @@ mod_tab_dbase_server <- function(id, conn){
     
     observeEvent(input$btn_delete, {
       
-      #ids <- input$tbl_emails_rows_selected
-      
       if(is.null(ids_selected())) {
         
         showToast("warning", "Please select a row on the table",
@@ -225,7 +216,6 @@ mod_tab_dbase_server <- function(id, conn){
       
       removeModal()
       
-      #ids <- input$tbl_emails_rows_selected
       uids <- tbl_emails()[ids_selected(), ]$uid
       store_name <- tbl_emails()[ids_selected(), ]$store_name
       

@@ -109,13 +109,6 @@ delete_data <- function(conn, table, col, ids = character(0)){
     stop("No such table in the DB")
   }
   
-  # col <- switch (table,
-  #                sage     = "sage_id",
-  #                hellenic = "trans_id",
-  #                BOC      = "trans_id",
-  #                rec_info = "sage_id"
-  # )
-  
   sql <- paste0('DELETE FROM ', table, ' WHERE ', col, ' = :x')
   
   rs <- DBI::dbSendStatement(conn, sql)

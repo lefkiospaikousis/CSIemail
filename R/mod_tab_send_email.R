@@ -83,6 +83,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         tidyr::nest(data = -store_code)
       
       csi_nest_total <- switch (csi_type(),
+                                
                                 # ACS CSI
                                 "ACS CSI" = csi_nest %>% 
                                   mutate(data =  purrr::map(data, ~ add_totals(., -AWB)))
@@ -390,26 +391,3 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
 
 ## To be copied in the server
 # mod_tab_send_email_server("tab_send_email_ui_1")
-
-
-# modal_resend <- function(session) {
-#   ns <- session$ns
-#   
-#   modalDialog(
-#     title = "Notice!",
-#     p(strong("Emails have already been sent!")),
-#     p("Do you want to send the emails again?"),
-#     tagList(
-#       actionButton(ns("btn_send_again"), "Yes, go ahead", class = "btn-success"),
-#       modalButton("Changed my mind. STOP!")
-#     ),
-#     footer = NULL
-#     
-#   )
-# }
-# 
-# observeEvent(input$btn_send_again, {
-#   
-#   rv$resend_ok <- TRUE
-#   removeModal()
-# })

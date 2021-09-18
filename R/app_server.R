@@ -12,7 +12,6 @@
 #' @importFrom stats na.omit
 #' @noRd
 app_server <- function( input, output, session ) {
-  # Your application server logic 
   
   rv <- rv(
     
