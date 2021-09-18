@@ -15,3 +15,12 @@ message_email_failure <- function(message){
                            ))
   
 }
+
+
+
+error_csi_file <- function(){
+  
+  shinyFeedback::hideFeedback("file_csi")
+  shinyFeedback::showFeedbackDanger("file_csi", "Something went wrong with your CSI file. Probably not a valid csi file")
+  
+}

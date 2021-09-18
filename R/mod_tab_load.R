@@ -71,17 +71,27 @@ mod_tab_load_server <- function(id){
         return()
       }
       
-      dta <- switch (csi_type,
-                      "ACS CSI" = read_acs_csi(file$datapath),
-                      "Ticket Hour" = read_ticket_hour(file$datapath),
-                      stop("Have you added a new type malaka?", .call = FALSE)
-      ) 
+      dta <- tryCatch(
+        
+        switch (csi_type,
+                       "ACS CSI" = read_acs_csi(file$datapath),
+                       "Ticket Hour" = read_ticket_hour(file$datapath),
+                       stop("Have you added a new type malaka?", .call = FALSE)
+        ),
+        
+        error = function(e){
+          
+          error_csi_file()
+          return()
+        }
+        
+      )
+ 
       
       # 
       if(is.null(dta)){
         
-        shinyFeedback::hideFeedback("file_csi")
-        shinyFeedback::showFeedbackDanger("file_csi", "Something went wrong with your CSI file. Probably not a valid csi file")
+        error_csi_file()
         
         return(NULL)
       }
