@@ -1,0 +1,25 @@
+[1] "2021-08-17 09:34:32 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.8:3844/"
+Session stopped
+Session stopped
+Doing application cleanup
+-----
+ Removing connections
+Terminate batch job (Y/N)? [1] "2021-08-31 14:51:11 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3844/"
+Doing application cleanup
+-----
+ Removing connections
+Terminate batch job (Y/N)? [1] "2021-09-04 11:11:58 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3844/"
+[1] "2021-09-04 11:13:52 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3844/"
+Doing application cleanup
+-----
+ Removing connections
+Terminate batch job (Y/N)? [1] "2021-09-18 18:39:48 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+Doing application cleanup
+-----
+ Removing connections
+Terminate batch job (Y/N)? 

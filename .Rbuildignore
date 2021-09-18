@@ -9,3 +9,5 @@ $run_dev.*
 ^Scripts$
 ^SampleData$
 ^DB$
+^app\.R$
+^rsconnect$

@@ -1,0 +1,8 @@
+Warning in loadSupport(appDir, renv = sharedEnv, globalrenv = NULL) :
+  Loading R/ subdirectory for Shiny application, but this directory appears to contain an R package. Sourcing files in R/ may cause unexpected behavior.
+i Loading CSIemail
+
+Listening on http://192.168.0.9:3845
+
+
+Execution halted
