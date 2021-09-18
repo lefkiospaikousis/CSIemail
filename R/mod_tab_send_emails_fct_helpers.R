@@ -34,8 +34,8 @@ verify_send <- function(session, dta) {
         style = "line-height: 1.00;",
         paste0(
           'You are about to send  "', 
-          n_emails, '" emails to "',
-          n_stores, '" stores'
+          n_emails, '" email(s) to "',
+          n_stores, '" store(s)'
         )
       )
     ),
