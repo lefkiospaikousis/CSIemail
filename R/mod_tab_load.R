@@ -16,7 +16,7 @@ mod_tab_load_ui <- function(id){
       box(title = p("Load a CSI Statement", style="color:#B88C4A"),
           radioButtons(ns("csi_type"), "Type of CSI", choices = c("ACS CSI", "Ticket Hour"), inline = TRUE),
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
-                    accept = c(".xlsx", ".xls"))
+                    accept = c(".xlsx", ".xls", ".csv"))
       )
     ),
     uiOutput(ns("store_csi_UI"))
