@@ -22,4 +22,20 @@ Terminate batch job (Y/N)? [1] "2021-09-18 18:39:48 +03"
 Doing application cleanup
 -----
  Removing connections
-Terminate batch job (Y/N)? 
+Terminate batch job (Y/N)? [1] "2021-09-21 14:15:41 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+Terminate batch job (Y/N)? [1] "2021-09-23 07:43:30 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+[1] "NO emails were send! Please check the email addresses"
+[1] "NO emails were send! Please check the email addresses"
+Terminate batch job (Y/N)? [1] "2021-09-24 08:40:27 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+Doing application cleanup
+-----
+ Removing connections
+Doing application cleanup
+-----
+ Removing connections
+Doing application cleanup
+-----
+ Removing connections
