@@ -128,7 +128,7 @@ get_csi_date <- function(csi, csi_type){
   stopifnot("date" %in% names(csi))
   
   date <- switch(csi_type,
-                 "ACS CSI" =  csi$date[1] %>% 
+                 "ACS" =  csi$date[1] %>% 
                    stringr::str_extract("(?<=: ).+"),
                  
                  "Ticket Hour" = paste0(min(csi$date, na.rm = TRUE), 

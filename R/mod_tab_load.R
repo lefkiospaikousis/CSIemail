@@ -14,9 +14,9 @@ mod_tab_load_ui <- function(id){
     tags$hr(style="border-color: black;"),
     fluidRow(
       box(title = p("Load a CSI Statement", style="color:#B88C4A"),
-          radioButtons(ns("csi_type"), "Type of CSI", choices = c("ACS CSI", "Ticket Hour"), inline = TRUE),
+          radioButtons(ns("csi_type"), "Type of CSI", choices = c("ACS", "Ticket Hour"), inline = TRUE),
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
-                    accept = c(".xlsx", ".xls"))
+                    accept = c(".xlsx", ".xls", ".csv"))
       )
     ),
     uiOutput(ns("store_csi_UI"))
@@ -55,7 +55,7 @@ mod_tab_load_server <- function(id){
       csi_type <- input$csi_type
       
       correct_file_type <- switch (csi_type,
-                                   "ACS CSI" = c("xls", "xlsx"),
+                                   "ACS" = c("xls", "xlsx"),
                                    "Ticket Hour" = "csv",
                                    stop("invalid type", .call = FALSE)
       )
@@ -74,7 +74,7 @@ mod_tab_load_server <- function(id){
       dta <- tryCatch(
         
         switch (csi_type,
-                       "ACS CSI" = read_acs_csi(file$datapath),
+                       "ACS" = read_acs_csi(file$datapath),
                        "Ticket Hour" = read_ticket_hour(file$datapath),
                        stop("Have you added a new type malaka?", .call = FALSE)
         ),
@@ -111,7 +111,7 @@ mod_tab_load_server <- function(id){
       
       dta <- switch (csi_type,
                      
-                     "ACS CSI" = process_csi(dta),
+                     "ACS" = process_csi(dta),
                      
                      "Ticket Hour" = dta,
                      
@@ -160,7 +160,7 @@ mod_tab_load_server <- function(id){
         filter(store_code == input$store) %>% 
         tidyr::nest(data = -store_code) %>% 
         {
-          if(input$csi_type == "ACS CSI") {
+          if(input$csi_type == "ACS") {
             mutate(., data =  purrr::map(data, ~add_totals(., -AWB)))
           } else {
             mutate(., data =  purrr::map(data, ~add_totals(., all_of(vars_sum))))
