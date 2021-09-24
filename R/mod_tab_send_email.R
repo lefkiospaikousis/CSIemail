@@ -71,7 +71,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       csi_date <- switch (csi_type(),
                           
-                          "ACS CSI" = format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
+                          "ACS" = format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
                           "Ticket Hour" = gsub("/", "_", isolate(csi_date())),
                           stop("Wrong csi type")
       )
@@ -84,8 +84,8 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       csi_nest_total <- switch (csi_type(),
                                 
-                                # ACS CSI
-                                "ACS CSI" = csi_nest %>% 
+                                # ACS
+                                "ACS" = csi_nest %>% 
                                   mutate(data =  purrr::map(data, ~ add_totals(., -AWB)))
                                 ,
                                 # Ticket hour CSI
@@ -247,7 +247,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
               body = blastula::md(glue::glue(
                 "Hello,
 
-            The CSI is attached:
+            The {csi_type()} CSI is attached:
 
             ")),
               footer = blastula::md(glue::glue("Email sent on {date_time}."))
@@ -277,7 +277,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                       email   = msg,
                       to      = address, 
                       from    = "lefkiospaik@gmail.com",
-                      subject = paste0("CSI date: ", csi_date()),
+                      subject = paste0(csi_type(), " CSI - Date: ", csi_date()),
                       credentials = blastula::creds_key("gmail") # blastula::creds_file("gmail_creds")
                     )
                   }
