@@ -20,3 +20,6 @@ i Use `spec()` to retrieve the full column specification for this data.
 i Specify the column types or set `show_col_types = FALSE` to quiet this message.
 The email message was sent successfully.
 The email message was sent successfully.
+
+
+Execution halted
