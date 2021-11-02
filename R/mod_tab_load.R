@@ -56,7 +56,7 @@ mod_tab_load_server <- function(id){
       
       correct_file_type <- switch (csi_type,
                                    "ACS" = c("xls", "xlsx"),
-                                   "Ticket Hour" = "csv",
+                                   "Ticket Hour" = c("xls", "xlsx"), #"csv",
                                    stop("invalid type", .call = FALSE)
       )
       
@@ -130,7 +130,7 @@ mod_tab_load_server <- function(id){
       
       tagList(
         fluidRow(
-          box(title = "View a store's csi", width = 8,
+          box(title = "View a store's csi", width = 10,
               selectInput(ns("store"), "Select a store", 
                           choices = unique(csi()$store_code)
               ),

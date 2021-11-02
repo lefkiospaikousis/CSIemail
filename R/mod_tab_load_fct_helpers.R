@@ -3,7 +3,8 @@
 #' @param path A path to a .csv file
 read_ticket_hour <- function(path){
   
-  stopifnot(tools::file_ext(path) == "csv")
+  #stopifnot(tools::file_ext(path) == "csv")
+  stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
   
   col_names <-
     c("store_code", "store_name", 
@@ -11,11 +12,22 @@ read_ticket_hour <- function(path){
       "items", "type", "date", "ref", "details",
       "value", "star", "os", "debit", "credit"
     )
+ 
   
-  temp <- safe_readCSV(path, 
-                       col_names = col_names, 
-                       locale = readr::locale(encoding = 'windows-1253')
-  ) 
+  # read it as excel
+  temp <- safe_readXL(path, col_names = FALSE)
+  
+  # temp <- safe_readCSV(path,
+  #                      col_names = col_names
+  #                      ,locale = readr::locale(encoding = 'windows-1253')
+  # )
+  
+  # # Fails too, when the entry starts with ""
+  # temp <- safe_readCSV2(path, 
+  #                       header = FALSE,
+  #                       col.names = col_names 
+  #                      ,encoding = 'windows-1253'
+  # ) 
   
   if(is.null(temp$result)) {
     
@@ -24,7 +36,8 @@ read_ticket_hour <- function(path){
   } else {
     
     temp$result %>% 
-      select(all_of(col_names)) %>%
+      select(1:15) %>% 
+      setNames(col_names) %>% 
       select(-EMPTY, -star, -contact) 
     
   } 
