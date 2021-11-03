@@ -31,6 +31,8 @@ mod_tab_load_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
+    callModule(mod_downloadTable_server, id = "down_csi", table_name = "CSI", store_csi)
+    
     rv <- rv(
       csi = NULL,
       stores = NULL,
@@ -81,7 +83,7 @@ mod_tab_load_server <- function(id){
         
         error = function(e){
           
-          error_csi_file()
+          error_csi_file(csi_type)
           return()
         }
         
@@ -91,7 +93,7 @@ mod_tab_load_server <- function(id){
       # 
       if(is.null(dta)){
         
-        error_csi_file()
+        error_csi_file(csi_type)
         
         return(NULL)
       }
@@ -134,6 +136,7 @@ mod_tab_load_server <- function(id){
               selectInput(ns("store"), "Select a store", 
                           choices = unique(csi()$store_code)
               ),
+              mod_downloadTable_ui(ns("down_csi")),
               DT::DTOutput(ns("store_csi"))
           )
         )
@@ -168,7 +171,16 @@ mod_tab_load_server <- function(id){
         } %>% 
         filter(store_code == input$store) %>% 
         select(data) %>% 
-        tidyr::unnest(cols = c(data))
+        tidyr::unnest(cols = c(data)) %>% 
+        #rename if TH
+        {
+          if(input$csi_type == "ACS") {
+            .
+          } else {
+            select(., any_of(col_names_ticket))
+          }
+        }
+        
       
       
     })
