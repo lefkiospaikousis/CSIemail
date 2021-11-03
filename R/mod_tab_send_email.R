@@ -80,8 +80,6 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                           stop("Wrong csi type")
       )
       
-      vars_sum <- c("os", "debit", "credit")
-      
       csi_nest <- 
         csi() %>%
         tidyr::nest(data = -store_code)
@@ -94,7 +92,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                                 ,
                                 # Ticket hour CSI
                                 "Ticket Hour" = csi_nest %>% 
-                                  mutate(data =  purrr::map(data, ~ add_totals(., all_of(vars_sum))))
+                                  mutate(data =  purrr::map(data, ~ add_totals(., all_of(vars_sum_ticketHour))))
                                 ,
                                 stop("Unknown CSI type", .call = FALSE)
       )

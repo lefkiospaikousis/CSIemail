@@ -9,22 +9,28 @@ read_ticket_hour <- function(path){
   # read it as excel
   temp <- safe_readXL(path, col_names = FALSE)
   
-  # temp <- safe_readCSV(path,
-  #                      col_names = col_names
-  #                      ,locale = readr::locale(encoding = 'windows-1253')
-  # )
-  
   if(is.null(temp$result)) {
     
     return(NULL) 
     
   } else {
     
+    out <- 
     temp$result %>% 
       select(1:15) %>% 
       setNames(unname(col_names_ticket)) %>% 
-      select(-EMPTY, -star, -contact) 
+      select(-EMPTY, -star, -contact) %>% 
+      mutate(temp = 1)
     
+    
+    numeric <- select(out, all_of(vars_sum_ticketHour), temp) %>% purrr::keep(is.logical) 
+    
+    if(ncol(numeric) >0 ){
+      
+      return(NULL)
+    }
+    
+    out
   } 
   
 }

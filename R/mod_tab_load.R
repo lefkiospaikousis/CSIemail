@@ -157,8 +157,6 @@ mod_tab_load_server <- function(id){
       
       req(csi())
       
-      vars_sum <- c("os", "debit", "credit")
-      
       csi() %>% 
         filter(store_code == input$store) %>% 
         tidyr::nest(data = -store_code) %>% 
@@ -166,7 +164,7 @@ mod_tab_load_server <- function(id){
           if(input$csi_type == "ACS") {
             mutate(., data =  purrr::map(data, ~add_totals(., -AWB)))
           } else {
-            mutate(., data =  purrr::map(data, ~add_totals(., all_of(vars_sum))))
+            mutate(., data =  purrr::map(data, ~add_totals(., all_of(vars_sum_ticketHour))))
           }
         } %>% 
         filter(store_code == input$store) %>% 

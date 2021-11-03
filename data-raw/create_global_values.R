@@ -23,10 +23,10 @@ col_names_ticket <-
   )
 
 
-
+vars_sum_ticketHour <- c("os", "debit", "credit")
 
 usethis::use_data(
   col_names_ticket
-  
+  , vars_sum_ticketHour
   , internal = TRUE
   , overwrite = TRUE)
