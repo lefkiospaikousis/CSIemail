@@ -7,4 +7,4 @@ default:
 production:
   app_prod: yes
 dev:
-  golem_wd: C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail
+  golem_wd: !expr here::here()
