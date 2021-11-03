@@ -122,6 +122,14 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
     })
     
+    csi_by_store_filtered <- reactive({
+      
+      # filters the nested tibble of selected stores
+      # & those who have an email address
+      csi_by_store()[selected_stores(), ] %>% 
+        filter(!purrr::map_lgl(email, is.null))
+      
+    })
     
     output$stores <- reactable::renderReactable({
       
@@ -200,9 +208,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       
       
-      dta <- 
-        csi_by_store()[selected, ] %>% 
-        filter(!purrr::map_lgl(email, is.null))
+      dta <- csi_by_store_filtered()
+      # csi_by_store()[selected, ] %>% 
+      # filter(!purrr::map_lgl(email, is.null))
       
       if(nrow(dta) == 0) {
         
@@ -226,9 +234,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
       
-      dta <- 
-        csi_by_store()[isolate(selected_stores()), ] %>% 
-        filter(!purrr::map_lgl(email, is.null))
+      dta <- csi_by_store_filtered()
+      # csi_by_store()[isolate(selected_stores()), ] %>% 
+      # filter(!purrr::map_lgl(email, is.null))
       
       
       tryCatch(
@@ -295,7 +303,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           
           
           # Return Success status
-          rv$success_emails <- 
+          #
+          
+          success_emails <- 
             dta %>% 
             rowwise() %>% 
             filter(isTRUE(send_success)) %>% 
@@ -309,14 +319,14 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           if(any(dta$send_success)) {
             
             n_stores <- length(unique(
-              filter(dta, email %in% rv$success_emails) %>% .$store_code
+              filter(dta, email %in% success_emails) %>% .$store_code
             ))
             
             showModal(
               modalDialog(
                 title = "Success sending emails(s)",
                 p(glue::glue("
-                             {length(rv$success_emails)} email(s) have been send to 
+                             {length(success_emails)} email(s) have been send to 
                              {n_stores} store(s)
                              ")
                 ),
@@ -325,7 +335,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             )
             
             rv$send_ok <- TRUE
-            
+            rv$success_emails <- union(isolate(rv$success_emails), success_emails)
           } else {
             
             msg <- "NO emails were send! Please check the email addresses"

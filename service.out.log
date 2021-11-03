@@ -39,4 +39,10 @@ Doing application cleanup
 Doing application cleanup
 -----
  Removing connections
+Terminate batch job (Y/N)? [1] "2021-09-24 10:42:23 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+Terminate batch job (Y/N)? [1] "2021-10-13 19:16:21 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
+Terminate batch job (Y/N)? [1] "2021-10-19 12:01:43 +03"
+[1] "the Shiny Web application runs on: http://192.168.0.9:3845/"
 Terminate batch job (Y/N)? 
