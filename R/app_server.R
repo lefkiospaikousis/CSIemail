@@ -9,7 +9,7 @@
 #' @importFrom glue glue
 #' @importFrom reactable colDef colFormat reactable
 #' @importFrom shinyFeedback showToast
-#' @importFrom stats na.omit
+#' @importFrom stats na.omit setNames
 #' @noRd
 app_server <- function( input, output, session ) {
   
