@@ -6,14 +6,6 @@ read_ticket_hour <- function(path){
   #stopifnot(tools::file_ext(path) == "csv")
   stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
   
-  col_names <-
-    c("store_code", "store_name", 
-      "contact", "EMPTY", "th_id", 
-      "items", "type", "date", "ref", "details",
-      "value", "star", "os", "debit", "credit"
-    )
- 
-  
   # read it as excel
   temp <- safe_readXL(path, col_names = FALSE)
   
@@ -21,13 +13,6 @@ read_ticket_hour <- function(path){
   #                      col_names = col_names
   #                      ,locale = readr::locale(encoding = 'windows-1253')
   # )
-  
-  # # Fails too, when the entry starts with ""
-  # temp <- safe_readCSV2(path, 
-  #                       header = FALSE,
-  #                       col.names = col_names 
-  #                      ,encoding = 'windows-1253'
-  # ) 
   
   if(is.null(temp$result)) {
     
@@ -37,7 +22,7 @@ read_ticket_hour <- function(path){
     
     temp$result %>% 
       select(1:15) %>% 
-      setNames(col_names) %>% 
+      setNames(unname(col_names_ticket)) %>% 
       select(-EMPTY, -star, -contact) 
     
   } 

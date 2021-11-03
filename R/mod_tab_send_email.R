@@ -12,14 +12,14 @@ mod_tab_send_email_ui <- function(id){
   tagList(
     
     fluidRow(
-      col_8(
-        box(title = "", width = 10, 
+      col_10(
+        box(title = "", width = NULL, 
             # actionButton("browser", "browser"),
             tags$script("$('#browser').show();"),
             actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
             hr(width = "80%"),
             htmlOutput(ns("csi_type_UI")),
-            h4("List of stores with CSI"),
+            h4("List of stores with CSI - Select the stores to send email to"),
             reactable::reactableOutput(ns("stores"))
         )
       )
@@ -59,7 +59,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     
     output$csi_type_UI <- renderText({
       
-      paste0("<b>CSI date: </b>", csi_date(), "<br>", "<b>CSI type: </b>", csi_type())
+      
+      paste0("<b>CSI date: </b>", csi_date(), "<br>", 
+             "<b>CSI type: </b>", csi_type(), "<br>", 
+             "<b>Detected: </b>", length(unique(csi_by_store()$store_code)), " stores with CSI"
+             )
     })
     
     
@@ -125,10 +129,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     csi_by_store_filtered <- reactive({
       
       # filters the nested tibble of selected stores
-      # & those who have an email address
-      csi_by_store()[selected_stores(), ] %>% 
-        filter(!purrr::map_lgl(email, is.null))
-      
+      csi_by_store()[selected_stores(), ] 
     })
     
     output$stores <- reactable::renderReactable({
@@ -208,9 +209,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       
       
-      dta <- csi_by_store_filtered()
-      # csi_by_store()[selected, ] %>% 
-      # filter(!purrr::map_lgl(email, is.null))
+      dta <- csi_by_store_filtered() %>% 
+        filter(!purrr::map_lgl(email, is.null))
+      
       
       if(nrow(dta) == 0) {
         
@@ -222,7 +223,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         return()
       }
       
-      showModal(verify_send(session, dta))
+      #null_emails <- nrow(dta) - nrow(csi_by_store_filtered())
+      
+      showModal(verify_send(session, csi_by_store_filtered()))
       
     })
     
@@ -234,9 +237,8 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
       
-      dta <- csi_by_store_filtered()
-      # csi_by_store()[isolate(selected_stores()), ] %>% 
-      # filter(!purrr::map_lgl(email, is.null))
+      dta <- csi_by_store_filtered() %>% 
+        filter(!purrr::map_lgl(email, is.null))
       
       
       tryCatch(
@@ -335,7 +337,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             )
             
             rv$send_ok <- TRUE
+            
             rv$success_emails <- union(isolate(rv$success_emails), success_emails)
+            
           } else {
             
             msg <- "NO emails were send! Please check the email addresses"
