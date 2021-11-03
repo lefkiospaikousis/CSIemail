@@ -29,7 +29,7 @@ app_ui <- function(request) {
                   mod_tab_load_ui("tab_load_ui_1")
           ),
           tabItem(tabName = "email",
-                  h3("Select stores to send emails to"),
+                  #h3("Select stores to send emails to"),
                   mod_tab_send_email_ui("tab_email_ui_1")
 
           ),

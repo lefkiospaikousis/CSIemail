@@ -3,23 +3,6 @@ Warning in loadSupport(appDir, renv = sharedEnv, globalrenv = NULL) :
 i Loading CSIemail
 
 Listening on http://192.168.0.9:3845
-New names:
-* `` -> ...1
-* `` -> ...2
-The email message was sent successfully.
-The email message was sent successfully.
-The email message was sent successfully.
-Rows: 1242 Columns: 27
--- Column specification --------------------------------------------------------
-Delimiter: ","
-chr  (8): store_code, store_name, contact, type, date, details, star, X26
-dbl (18): th_id, items, ref, value, os, debit, credit, X16, X17, X18, X19, X...
-lgl  (1): EMPTY
-
-i Use `spec()` to retrieve the full column specification for this data.
-i Specify the column types or set `show_col_types = FALSE` to quiet this message.
-The email message was sent successfully.
-The email message was sent successfully.
 
 
 Execution halted
