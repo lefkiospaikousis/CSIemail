@@ -2,9 +2,15 @@ default:
   golem_name: CSIemail
   golem_version: 0.0.1
   app_prod: no
-  smtp_creds: gmail_creds
+  smtp_creds: gmail
+  sender: lefkiospaik@gmail.com
   db_path: DB/csi_db.db
 production:
   app_prod: yes
+  sender: accounts@acscyprus.com
+  smtp_creds: acs
 dev:
+  app_prod: no
   golem_wd: !expr here::here()
+  sender: lefkiospaik@gmail.com
+  smtp_creds: gmail
