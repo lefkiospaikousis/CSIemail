@@ -62,7 +62,7 @@ mod_tab_load_server <- function(id){
                                    stop("invalid type", .call = FALSE)
       )
       
-      
+      browser()
       if(!file_type %in% correct_file_type ) {
         
         msg <- paste0("This is not a valid ", csi_type, " file. We need a ", paste0(correct_file_type, collapse = '/'), " file")
