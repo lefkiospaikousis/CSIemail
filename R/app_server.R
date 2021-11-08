@@ -13,6 +13,17 @@
 #' @noRd
 app_server <- function( input, output, session ) {
   
+  
+  credentials <- read.csv("DB/credentials.csv")
+  
+  res_auth <- shinymanager::secure_server(
+    check_credentials = shinymanager::check_credentials(
+      credentials
+      # "DB/credentials.sqlite",
+      # keyring::key_get("R-shinymanager-key", "lefkios")
+    )
+  )
+  
   rv <- rv(
     
     csi = NULL,
