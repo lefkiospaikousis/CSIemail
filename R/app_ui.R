@@ -31,7 +31,7 @@ app_ui <- function(request) {
           tabItem(tabName = "email",
                   #h3("Select stores to send emails to"),
                   mod_tab_send_email_ui("tab_email_ui_1")
-
+                  
           ),
           tabItem(tabName = "dbase",
                   h3("The store email list"),
@@ -58,7 +58,7 @@ golem_add_external_resources <- function(){
   add_resource_path(
     'www', app_sys('app/www')
   )
- 
+  
   tags$head(
     favicon(),
     bundle_resources(
