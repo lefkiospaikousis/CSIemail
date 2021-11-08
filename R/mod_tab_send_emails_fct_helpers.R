@@ -1,15 +1,37 @@
 save_csi_to_disk <- function(dta) {
   
-  
   stopifnot(all(c("store_code", "store_name", "data", "filename") %in% names(dta)))
   
+  Sys.setlocale(locale = "greek")
+  on.exit(Sys.setlocale(locale = "English_United Kingdom"))
+  
+  # create workbooks
+  my_dta <- 
+    dta %>% 
+    rowwise() %>% 
+    mutate(
+      wb = list(as_excel_wb(data))
+    )
+  
   purrr::pwalk(
-    select(dta, data, filename), 
-    function(data, filename){
-      writexl::write_xlsx(data, filename) 
+    select(my_dta, wb, filename),
+    function(wb, filename){
+      openxlsx::saveWorkbook(wb, filename, overwrite = TRUE)
     }
   )
   
+  
+}
+
+as_excel_wb <- function(dta){
+  
+  wb <- openxlsx::createWorkbook()
+  
+  openxlsx::addWorksheet(wb, "CSI")
+  
+  openxlsx::writeDataTable(wb, 1, dta,  tableStyle = "TableStyleMedium16")
+  
+  return(wb)
 }
 
 #' Modal dialog for Sending verification
