@@ -54,6 +54,15 @@ app_server <- function( input, output, session ) {
     
   })
   
+  # User Managemnt only of an ADMIN
+  output$managerUI <- renderMenu({
+    if(isTRUE(reactiveValuesToList(res_auth)$admin))
+      menuItem("User Management", tabName = "user_manage", icon = icon("bell")
+               
+      )
+  })
+  
+  
   # 1. Load  csi
   load <- mod_tab_load_server("tab_load_ui_1")
   

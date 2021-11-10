@@ -17,6 +17,7 @@ app_ui <- function(request) {
                     menuItem("2. Send emails", tabName = "email", icon = icon("envelope")),
                     hr(style = "width:80%"),
                     menuItem("Store Email List", tabName = "dbase", icon = icon("database")),
+                    menuItemOutput("managerUI"),
                     tags$hr(style = "border-color: white; width:80%"),
                     p(paste0("Version: ", golem::get_golem_version()), style = "margin-left:25px")
                     
@@ -36,6 +37,10 @@ app_ui <- function(request) {
           tabItem(tabName = "dbase",
                   h3("The store email list"),
                   mod_tab_dbase_ui("tab_dbase_ui_1")
+                  
+          ),
+          tabItem(tabName = "user_manage",
+                  mod_user_management_ui("user_management_ui_1")
                   
           )
         )
