@@ -5,12 +5,14 @@ default:
   smtp_creds: gmail
   sender: lefkiospaik@gmail.com
   db_path: DB/csi_db.db
+  db_users: DB/credentials.sqlite
+  users_passphrase: acsrocks
 production:
   app_prod: yes
   sender: accounts@acscyprus.com
   smtp_creds: acs
 dev:
   app_prod: no
-  golem_wd: !expr here::here()
+  golem_wd: C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail
   sender: lefkiospaik@gmail.com
   smtp_creds: gmail

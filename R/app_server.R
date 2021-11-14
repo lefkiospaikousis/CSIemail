@@ -13,16 +13,15 @@
 #' @noRd
 app_server <- function( input, output, session ) {
   
+  shiny::onStop(function(){
+    
+    cat("Doing application cleanup\n")
+    cat("-----\n Removing connections\n")
+    
+    DBI::dbDisconnect(email_db)
+    
+  })
   
-  credentials <- read.csv("DB/credentials.csv")
-  
-  res_auth <- shinymanager::secure_server(
-    check_credentials = shinymanager::check_credentials(
-      credentials
-      # "DB/credentials.sqlite",
-      # keyring::key_get("R-shinymanager-key", "lefkios")
-    )
-  )
   
   rv <- rv(
     
@@ -33,11 +32,24 @@ app_server <- function( input, output, session ) {
     csi_date = NULL
   )
   
-  # RSQLite connection ------------------------------------------------------
   
   configuration <- Sys.getenv("GOLEM_CONFIG_ACTIVE", "default")
+  
+  res_auth <- shinymanager::secure_server(
+    
+    check_credentials = shinymanager::check_credentials(
+      
+      db = CSIemail:::get_golem_config("db_users", configuration),
+      passphrase = get_golem_config("users_passphrase", configuration)
+      #passphrase = keyring::key_get("R-shinymanager-key", "obiwankenobi")
+    )
+  )
+  
+  
+  # RSQLite connection ------------------------------------------------------
+  
+  # Database for emails
   path <- get_golem_config("db_path", configuration)
-  #from <- get_golem_config("sender", configuration)
   
   creds_key <- get_golem_config("smtp_creds", configuration)
   
@@ -45,22 +57,30 @@ app_server <- function( input, output, session ) {
   
   email_db <- DBI::dbConnect(RSQLite::SQLite(), path)
   
-  shiny::onStop(function(){
+  
+  # # User Management only if an ADMIN
+  # 
+  # output$managerUI <- renderMenu({
+  #   if(isTRUE(reactiveValuesToList(res_auth)$admin))
+  #     menuItem("User Management", tabName = "user_manage", icon = icon("bell")
+  #              
+  #     )
+  # })
+  
+  
+  # User IP Information -----------------------------------------------------
+  
+  IP_info <- reactive({ input$getIP })
+  
+  output$ip <- renderText({
     
-    cat("Doing application cleanup\n")
-    cat("-----\n Removing connections\n")
+    req(IP_info())
     
-    DBI::dbDisconnect(email_db)
-    
+    IP_info()$ip
   })
   
-  # User Managemnt only of an ADMIN
-  output$managerUI <- renderMenu({
-    if(isTRUE(reactiveValuesToList(res_auth)$admin))
-      menuItem("User Management", tabName = "user_manage", icon = icon("bell")
-               
-      )
-  })
+  
+  # TABS --------------------------------------------------------------------
   
   
   # 1. Load  csi
@@ -87,12 +107,12 @@ app_server <- function( input, output, session ) {
                             reactive(rv$csi_date),
                             from = from,
                             creds_key = creds_key
-                            )
+  )
   
   
   
-  # ----- #
-  # Database
+  # 3. Email dbase
+  
   dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = email_db)
   
   observeEvent(dbase$db_trigger, {

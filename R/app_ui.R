@@ -38,10 +38,6 @@ app_ui <- function(request) {
                   h3("The store email list"),
                   mod_tab_dbase_ui("tab_dbase_ui_1")
                   
-          ),
-          tabItem(tabName = "user_manage",
-                  mod_user_management_ui("user_management_ui_1")
-                  
           )
         )
       )
