@@ -81,8 +81,9 @@ add_totals <- function(dta, ...){
 
 
 
-#' Process the uploaded csi file
+#' Process the uploaded ACS csi file
 #' 
+#' Only the ACS file
 #' 
 #' @param csi A tibble of the csi
 #' @details This table is as is read by the readxl function
@@ -115,7 +116,8 @@ process_csi <- function(csi) {
     ) %>% 
     {.}
   
-  
+  csi_clean[[3]] <- anonymise2(csi_clean[[3]])
+            
   csi_clean
   
 }
@@ -148,3 +150,20 @@ get_csi_date <- function(csi, csi_type){
 }
 
 
+anonymise <- function(string){
+  
+  n_char <- nchar(string)
+  
+  ind <- sample(seq_len(n_char), round(n_char*0.50))
+  
+  # Split and replace
+  my_letters <- strsplit(string, "") %>% unlist() 
+  my_letters[ind] <- "*"
+  
+  # return
+  paste0(my_letters, collapse = "")
+  
+}
+
+#' Vectorised version of anonymise
+anonymise2 <- Vectorize(anonymise)
