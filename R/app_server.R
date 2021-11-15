@@ -46,6 +46,23 @@ app_server <- function( input, output, session ) {
   )
   
   
+  user_info <- reactive({
+    
+    reactiveValuesToList(res_auth)
+    
+  })
+  
+  observe({
+    session$userData$user <- user_info()$user
+  })
+  
+  output$userName <- renderText({
+    
+    #user_info()$user
+    paste0("User: ", session$userData$user)
+    
+  })
+  
   # RSQLite connection ------------------------------------------------------
   
   # Database for emails
@@ -72,13 +89,17 @@ app_server <- function( input, output, session ) {
   
   IP_info <- reactive({ input$getIP })
   
-  output$ip <- renderText({
+  output$ip_user <- renderPrint({
     
-    req(IP_info())
-    
-    IP_info()$ip
+    #req(IP_info())
+    ip_user()
+    #IP_info()$ip
   })
   
+  ip_user <- reactive({
+    #cat("The remote IP is", isolate(input$remote_addr), "\n")
+    input$remote_addr
+  })
   
   # TABS --------------------------------------------------------------------
   
