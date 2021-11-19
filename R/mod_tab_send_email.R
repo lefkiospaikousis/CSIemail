@@ -60,6 +60,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     
     
     csi_date_text <- reactive({
+      
+      req(csi_type())
+      
       switch (csi_type(),
               
               "ACS" = paste0(
