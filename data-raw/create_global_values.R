@@ -25,8 +25,18 @@ col_names_ticket <-
 
 vars_sum_ticketHour <- c("os", "debit", "credit")
 
+# Excel templates
+
+xl_template_ACS_CSI <- openxlsx::loadWorkbook("data-raw/ACS CSI template.xlsx")
+
+xl_template_TH_CSI <- openxlsx::loadWorkbook("data-raw/TH CSI template.xlsx")
+
+
 usethis::use_data(
   col_names_ticket
   , vars_sum_ticketHour
+  , xl_template_ACS_CSI
+  , xl_template_TH_CSI
   , internal = TRUE
-  , overwrite = TRUE)
+  , overwrite = TRUE
+  )

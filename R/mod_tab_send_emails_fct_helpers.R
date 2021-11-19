@@ -1,17 +1,23 @@
-save_csi_to_disk <- function(dta) {
+save_csi_to_disk <- function(dta, csi_type, csi_date) {
   
   stopifnot(all(c("store_code", "store_name", "data", "filename") %in% names(dta)))
   
   Sys.setlocale(locale = "greek")
   on.exit(Sys.setlocale(locale = "English_United Kingdom"))
-  
+  browser()
   # create workbooks
   my_dta <- 
     dta %>% 
-    rowwise() %>% 
     mutate(
-      wb = list(as_excel_wb(data))
+      wb = purrr::pmap(
+        list(data, store_code, store_name),
+        ~ as_excel_wb(..1, ..2, ..3, csi_type, csi_date )
+      )
     )
+  
+  
+  
+  
   
   purrr::pwalk(
     select(my_dta, wb, filename),
@@ -23,15 +29,45 @@ save_csi_to_disk <- function(dta) {
   
 }
 
-as_excel_wb <- function(dta){
+as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
   
-  wb <- openxlsx::createWorkbook()
   
-  openxlsx::addWorksheet(wb, "CSI")
+  path <-switch (csi_type,
+                 "ACS" =get_golem_config("acs_template"),
+                 "Ticket Hour" = get_golem_config("th_template"),
+                 stop("Unknown CSI type", .call = FALSE)
+  )
   
-  openxlsx::writeDataTable(wb, 1, dta,  tableStyle = "TableStyleMedium16")
+  xl_out <- openxlsx::loadWorkbook(path)
   
-  return(wb)
+  openxlsx::writeDataTable(xl_out, sheet = 1,
+                           dta, startRow = 13,
+                           tableStyle = "TableStyleMedium16"
+  )
+  
+  openxlsx::writeData(xl_out, 1, store_name, startRow = 9, startCol = 2)
+  openxlsx::writeData(xl_out, 1, store_code, startRow = 10, startCol = 2)
+  
+  if(length(csi_date) == 1){
+    
+    # single date for ACS csi
+    csi_date <- as.character(csi_date[[1]])
+    
+    openxlsx::writeData(xl_out, 1, csi_date, startRow = 6, startCol = 2)
+    openxlsx::writeData(xl_out, 1, csi_date, startRow = 7, startCol = 2)
+  }
+  
+  if(length(csi_date) == 2){
+    # from date and to date for TH
+    openxlsx::writeData(xl_out, 1, as.character(csi_date[[1]]), startRow = 6, startCol = 2)
+    openxlsx::writeData(xl_out, 1, as.character(csi_date[[2]]), startRow = 7, startCol = 2)
+  }
+  
+  if(length(csi_date) > 2){
+    stop("Length of csi_date is greater than 2 - min and max", call. = FALSE)
+  }
+  
+  return(xl_out)
 }
 
 #' Modal dialog for Sending verification
@@ -54,7 +90,7 @@ verify_send <- function(session, dta) {
   n_emails <- length(dta_w_emails$email)
   n_stores <- length(unique(dta_w_emails$store_code))
   
-    #shinyjs::show(ns("ddd")) #, condition = xs>0, asis = TRUE)
+  #shinyjs::show(ns("ddd")) #, condition = xs>0, asis = TRUE)
   
   modalDialog(
     div(

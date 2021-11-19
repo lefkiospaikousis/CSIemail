@@ -59,10 +59,36 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     })
     
     
+    csi_date_text <- reactive({
+      switch (csi_type(),
+              
+              "ACS" = paste0(
+                format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
+                collapse = "_"),
+              #"Ticket Hour" = gsub("/", "_", isolate(csi_date())),
+              "Ticket Hour" = paste0(
+                format(lubridate::ymd(isolate(csi_date())), '%d-%m-%Y')
+                , collapse = "_"),
+              stop("Wrong csi type")
+      )
+    })
+    
     output$csi_type_UI <- renderText({
       
+      # csi_date <- switch (csi_type(),
+      #                     
+      #                     "ACS" = paste0(
+      #                       format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
+      #                       collapse = "_"),
+      #                     #"Ticket Hour" = gsub("/", "_", isolate(csi_date())),
+      #                     "Ticket Hour" = paste0(
+      #                       format(lubridate::ymd(isolate(csi_date())), '%d-%m-%Y')
+      #                       , collapse = "_"),
+      #                     stop("Wrong csi type")
+      # )
       
-      paste0("<b>CSI date: </b>", csi_date(), "<br>", 
+      
+      paste0("<b>CSI date: </b>", csi_date_text(), "<br>", 
              "<b>CSI type: </b>", csi_type(), "<br>", 
              "<b>Detected: </b>", length(unique(csi_by_store()$store_code)), " stores with CSI"
              )
@@ -71,16 +97,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     
     csi_by_store <- reactive({
       
-      req(csi(), csi_date())
+      req(csi(), csi_date_text())
       
       folder_path <- tempdir() 
       
-      csi_date <- switch (csi_type(),
-                          
-                          "ACS" = format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
-                          "Ticket Hour" = gsub("/", "_", isolate(csi_date())),
-                          stop("Wrong csi type")
-      )
+      csi_date <- csi_date_text()
       
       csi_nest <- 
         csi() %>%
@@ -240,13 +261,14 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       dta <- csi_by_store_filtered() %>% 
         filter(!purrr::map_lgl(email, is.null))
       
-      
+      browser()
       tryCatch(
         
         expr = {
           
           # 1. Save to disk first ------------------------------------#
-          save_csi_to_disk(dta)
+          
+          save_csi_to_disk(dta, csi_type(), csi_date())
           
           # 2. Send emails -------------------------------------------#
           # Email msg
@@ -287,7 +309,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                       email   = msg,
                       to      = address, 
                       from    = from,
-                      subject = paste0(csi_type(), " CSI - Date: ", csi_date()),
+                      subject = paste0(csi_type(), " CSI - Date: ", csi_date_text()),
                       credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
                     )
                   }

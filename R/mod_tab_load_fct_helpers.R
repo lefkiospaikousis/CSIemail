@@ -19,11 +19,11 @@ read_ticket_hour <- function(path){
     temp$result %>% 
       select(1:15) %>% 
       setNames(unname(col_names_ticket)) %>% 
-      select(-EMPTY, -star, -contact) %>% 
-      mutate(temp = 1)
+      select(-EMPTY, -star, -contact, -value, -ticket_id, -store_name) %>% 
+      {.}
     
     
-    numeric <- select(out, all_of(vars_sum_ticketHour), temp) %>% purrr::keep(is.logical) 
+    numeric <- select(out, all_of(vars_sum_ticketHour)) %>% purrr::keep(is.logical) 
     
     if(ncol(numeric) >0 ){
       
@@ -137,10 +137,13 @@ get_csi_date <- function(csi, csi_type){
                  "ACS" =  csi$date[1] %>% 
                    stringr::str_extract("(?<=: ).+"),
                  
-                 "Ticket Hour" = paste0(min(csi$date, na.rm = TRUE), 
-                                        " - ", 
-                                        max(csi$date, na.rm = TRUE)
-                 ),
+                 # "Ticket Hour" = paste0(min(csi$date, na.rm = TRUE), 
+                 #                        " - ", 
+                 #                        max(csi$date, na.rm = TRUE)
+                 # ),
+                 "Ticket Hour" = c(from = min(csi$date, na.rm = TRUE),
+                                   to = max(csi$date, na.rm = TRUE)
+                                   ),
                  
                  stop("Invalid CSI type")
   )
