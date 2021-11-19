@@ -4,7 +4,7 @@
 #'     DO NOT REMOVE.
 #' @import shiny dplyr shinydashboard
 #' @importFrom DT datatable DTOutput renderDT
-#' @importFrom purrr map walk walk2 map2 pmap
+#' @importFrom purrr map map2 pmap walk walk2 pwalk map_lgl
 #' @importFrom shinyjs enable disable toggleState
 #' @importFrom glue glue
 #' @importFrom reactable colDef colFormat reactable

@@ -4,12 +4,12 @@ save_csi_to_disk <- function(dta, csi_type, csi_date) {
   
   Sys.setlocale(locale = "greek")
   on.exit(Sys.setlocale(locale = "English_United Kingdom"))
-  browser()
+  
   # create workbooks
   my_dta <- 
     dta %>% 
     mutate(
-      wb = purrr::pmap(
+      wb = pmap(
         list(data, store_code, store_name),
         ~ as_excel_wb(..1, ..2, ..3, csi_type, csi_date )
       )
@@ -19,7 +19,7 @@ save_csi_to_disk <- function(dta, csi_type, csi_date) {
   
   
   
-  purrr::pwalk(
+  pwalk(
     select(my_dta, wb, filename),
     function(wb, filename){
       openxlsx::saveWorkbook(wb, filename, overwrite = TRUE)
@@ -82,15 +82,11 @@ verify_send <- function(session, dta) {
   
   stopifnot(nrow(dta) > 0)
   
-  dta_w_emails <- filter(dta, !purrr::map_lgl(email, is.null))
-  
-  # xs <- nrow(dta) - nrow(dta_w_emails)
-  # print(xs)
+  dta_w_emails <- filter(dta, !map_lgl(email, is.null))
   
   n_emails <- length(dta_w_emails$email)
   n_stores <- length(unique(dta_w_emails$store_code))
   
-  #shinyjs::show(ns("ddd")) #, condition = xs>0, asis = TRUE)
   
   modalDialog(
     div(
@@ -104,9 +100,6 @@ verify_send <- function(session, dta) {
           n_stores, '" store(s)'
         )
       )
-      # ,shinyjs::hidden(
-      #   div(id = "ddd", p("misshhhed"))
-      # )
     ),
     title = "Verify sending emails",
     size = "m",

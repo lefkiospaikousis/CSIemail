@@ -54,7 +54,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         tbl("emails") %>% 
         collect() %>% 
         tidyr::nest(email = email) %>% 
-        mutate(email = purrr::map(email, ~pull(., email)))
+        mutate(email = map(email, ~pull(., email)))
       
     })
     
@@ -111,11 +111,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                                 
                                 # ACS
                                 "ACS" = csi_nest %>% 
-                                  mutate(data =  purrr::map(data, ~ add_totals(., -AWB)))
+                                  mutate(data = map(data, ~ add_totals(., -AWB)))
                                 ,
                                 # Ticket hour CSI
                                 "Ticket Hour" = csi_nest %>% 
-                                  mutate(data =  purrr::map(data, ~ add_totals(., all_of(vars_sum_ticketHour))))
+                                  mutate(data = map(data, ~ add_totals(., all_of(vars_sum_ticketHour))))
                                 ,
                                 stop("Unknown CSI type", .call = FALSE)
       )
@@ -259,9 +259,9 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       waiter::waiter_show(color = "#EBE2E231", html = WaiterSendEmails)
       
       dta <- csi_by_store_filtered() %>% 
-        filter(!purrr::map_lgl(email, is.null))
+        filter(!map_lgl(email, is.null))
       
-      browser()
+      
       tryCatch(
         
         expr = {
@@ -289,7 +289,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           dta <- 
             dta %>% 
             mutate(
-              email_msg = purrr::map(filename, ~ blastula::add_attachment(email_msg, .x))
+              email_msg = map(filename, ~ blastula::add_attachment(email_msg, .x))
             )
           
           # Send! Note that everything is saved in a nested tibble
@@ -297,7 +297,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             dta %>% 
             mutate(
               
-              send_result =  purrr::map2(
+              send_result =  map2(
                 
                 .x = email_msg, 
                 .y = email,
@@ -321,8 +321,8 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           dta <- 
             dta %>% 
             mutate(
-              send_success = purrr::map_lgl(
-                purrr::map(send_result, "error"), is.null)
+              send_success = map_lgl(
+                map(send_result, "error"), is.null)
             )
           
           
