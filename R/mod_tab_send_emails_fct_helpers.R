@@ -48,6 +48,9 @@ as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
   openxlsx::writeData(xl_out, 1, store_name, startRow = 9, startCol = 2)
   openxlsx::writeData(xl_out, 1, store_code, startRow = 10, startCol = 2)
   
+  openxlsx::writeData(xl_out, 1, format(Sys.Date(), "%d-%m-%Y"), startRow = 3, startCol = 2)
+  openxlsx::writeData(xl_out, 1, format(Sys.time(), "%H:%M:%S"), startRow = 4, startCol = 2)
+  
   if(length(csi_date) == 1){
     
     # single date for ACS csi
