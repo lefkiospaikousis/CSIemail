@@ -1,6 +1,6 @@
 Package: CSIemail
 Title: Cash Sales Invoices by shop and emails
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: person('Lefkios', 'Paikousis', email = 'lefkiospaikousis@yahoo.com', role = c('cre', 'aut'))
 Description: Split the CSI email statement by shop and send emails.
 License: file LICENSE
