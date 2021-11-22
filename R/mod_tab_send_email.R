@@ -19,7 +19,7 @@ mod_tab_send_email_ui <- function(id){
             actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
             hr(width = "80%"),
             htmlOutput(ns("csi_type_UI")),
-            h4("List of stores with CSI - Select the stores to send email to"),
+            h4("List of stores with transactions - Select the stores to send email to"),
             reactable::reactableOutput(ns("stores"))
         )
       )
@@ -65,35 +65,23 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       
       switch (csi_type(),
               
-              "ACS" = paste0(
+              "ACS CSI" = paste0(
                 format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
                 collapse = "_"),
-              #"Ticket Hour" = gsub("/", "_", isolate(csi_date())),
-              "Ticket Hour" = paste0(
+              
+              "Ticket Hour Sales" = paste0(
                 format(lubridate::ymd(isolate(csi_date())), '%d-%m-%Y')
                 , collapse = "_"),
+              
               stop("Wrong csi type")
       )
     })
     
     output$csi_type_UI <- renderText({
       
-      # csi_date <- switch (csi_type(),
-      #                     
-      #                     "ACS" = paste0(
-      #                       format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
-      #                       collapse = "_"),
-      #                     #"Ticket Hour" = gsub("/", "_", isolate(csi_date())),
-      #                     "Ticket Hour" = paste0(
-      #                       format(lubridate::ymd(isolate(csi_date())), '%d-%m-%Y')
-      #                       , collapse = "_"),
-      #                     stop("Wrong csi type")
-      # )
-      
-      
-      paste0("<b>CSI date: </b>", csi_date_text(), "<br>", 
-             "<b>CSI type: </b>", csi_type(), "<br>", 
-             "<b>Detected: </b>", length(unique(csi_by_store()$store_code)), " stores with CSI"
+      paste0("<b>Transaction date(s): </b>", csi_date_text(), "<br>", 
+             "<b>Data type: </b>", csi_type(), "<br>", 
+             "<b>Detected: </b>", length(unique(csi_by_store()$store_code)), " stores with sales"
              )
     })
     
@@ -113,11 +101,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       csi_nest_total <- switch (csi_type(),
                                 
                                 # ACS
-                                "ACS" = csi_nest %>% 
+                                "ACS CSI" = csi_nest %>% 
                                   mutate(data = map(data, ~ add_totals(., -AWB)))
                                 ,
                                 # Ticket hour CSI
-                                "Ticket Hour" = csi_nest %>% 
+                                "Ticket Hour Sales" = csi_nest %>% 
                                   mutate(data = map(data, ~ add_totals(., all_of(vars_sum_ticketHour))))
                                 ,
                                 stop("Unknown CSI type", .call = FALSE)
@@ -254,7 +242,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
     })
     
     
-    
+    # Send Emails ----
     observeEvent(input$confirm_send, {
       
       removeModal()
@@ -269,11 +257,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         
         expr = {
           
-          # 1. Save to disk first ------------------------------------#
+          ## 1. Save to disk first ------------------------------------
           
           save_csi_to_disk(dta, csi_type(), csi_date())
           
-          # 2. Send emails -------------------------------------------#
+          ## 2. Send emails -------------------------------------------
           # Email msg
           date_time <- blastula::add_readable_time()
           
@@ -282,20 +270,21 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
               body = blastula::md(glue::glue(
                 "Hello,
 
-            The {csi_type()} CSI is attached:
+            The {csi_type()} is attached:
 
             ")),
               footer = blastula::md(glue::glue("Email sent on {date_time}."))
             )
           
-          # Add attachment
+          ### Add attachment ----
           dta <- 
             dta %>% 
             mutate(
               email_msg = map(filename, ~ blastula::add_attachment(email_msg, .x))
             )
           
-          # Send! Note that everything is saved in a nested tibble
+          ### Send! ----
+          # Note that everything is saved in a nested tibble
           dta <- 
             dta %>% 
             mutate(
@@ -312,7 +301,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                       email   = msg,
                       to      = address, 
                       from    = from,
-                      subject = paste0(csi_type(), " CSI - Date: ", csi_date_text()),
+                      subject = paste0(csi_type(), " - Date: ", csi_date_text()),
                       credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
                     )
                   }
@@ -320,7 +309,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
               )
             )
           
-          # Send success?
+          ### Send success? ----
           dta <- 
             dta %>% 
             mutate(
@@ -330,7 +319,6 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           
           
           # Return Success status
-          #
           
           success_emails <- 
             dta %>% 
@@ -390,7 +378,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       )
       
       
-      # 3. Remove files -----------------------------------------#
+      ## 3. Remove files -----------------------------------------
       tryCatch(
         
         expr = {

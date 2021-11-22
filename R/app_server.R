@@ -10,6 +10,7 @@
 #' @importFrom reactable colDef colFormat reactable
 #' @importFrom shinyFeedback showToast
 #' @importFrom stats na.omit setNames
+#' @importFrom openxlsx writeData writeDataTable
 #' @noRd
 app_server <- function( input, output, session ) {
   

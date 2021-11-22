@@ -10,11 +10,11 @@
 mod_tab_load_ui <- function(id){
   ns <- NS(id)
   tagList(
-    h3("Load the CSI dataset"),
-    tags$hr(style="border-color: black;"),
+    #h3("Load the a Statement"),
+    #tags$hr(style="border-color: black;"),
     fluidRow(
-      box(title = p("Load a CSI Statement", style="color:#B88C4A"),
-          radioButtons(ns("csi_type"), "Type of CSI", choices = c("ACS", "Ticket Hour"), inline = TRUE),
+      box(title = h3("Load a Statement", style="color:#B88C4A"),
+          radioButtons(ns("csi_type"), "Type of statement", choices = c("ACS CSI", "Ticket Hour Sales"), inline = TRUE),
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
                     accept = c(".xlsx", ".xls", ".csv"))
       )
@@ -57,8 +57,8 @@ mod_tab_load_server <- function(id){
       csi_type <- input$csi_type
       
       correct_file_type <- switch (csi_type,
-                                   "ACS" = c("xls", "xlsx"),
-                                   "Ticket Hour" = c("xls", "xlsx"), #"csv",
+                                   "ACS CSI" = c("xls", "xlsx"),
+                                   "Ticket Hour Sales" = c("xls", "xlsx"), #"csv",
                                    stop("invalid type", .call = FALSE)
       )
       
@@ -76,8 +76,8 @@ mod_tab_load_server <- function(id){
       dta <- tryCatch(
         
         switch (csi_type,
-                       "ACS" = read_acs_csi(file$datapath),
-                       "Ticket Hour" = read_ticket_hour(file$datapath),
+                       "ACS CSI" = read_acs_csi(file$datapath),
+                       "Ticket Hour Sales" = read_ticket_hour(file$datapath),
                        stop("Have you added a new type malaka?", .call = FALSE)
         ),
         
@@ -105,7 +105,7 @@ mod_tab_load_server <- function(id){
       shinyFeedback::showFeedbackSuccess("file_csi", paste0(csi_type, " file read OK!"))
       
       
-      
+      # get it before processing. In TH, I format as euro dates
       rv$csi_date <- get_csi_date(dta, csi_type)
       
       
@@ -113,9 +113,9 @@ mod_tab_load_server <- function(id){
       
       dta <- switch (csi_type,
                      
-                     "ACS" = process_csi(dta),
+                     "ACS CSI" = process_csi(dta),
                      
-                     "Ticket Hour" = dta,
+                     "Ticket Hour Sales" = process_th(dta),
                      
                      stop("Have you added a new type malaka?", .call = FALSE)
       ) 
@@ -161,7 +161,7 @@ mod_tab_load_server <- function(id){
         filter(store_code == input$store) %>% 
         tidyr::nest(data = -store_code) %>% 
         {
-          if(input$csi_type == "ACS") {
+          if(input$csi_type == "ACS CSI") {
             mutate(., data =  map(data, ~add_totals(., -AWB)))
           } else {
             mutate(., data =  map(data, ~add_totals(., all_of(vars_sum_ticketHour))))
@@ -172,7 +172,7 @@ mod_tab_load_server <- function(id){
         tidyr::unnest(cols = c(data)) %>% 
         #rename if TH
         {
-          if(input$csi_type == "ACS") {
+          if(input$csi_type == "ACS CSI") {
             .
           } else {
             select(., any_of(col_names_ticket))

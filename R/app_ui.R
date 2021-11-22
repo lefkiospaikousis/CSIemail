@@ -23,7 +23,7 @@ app_ui <- function(request) {
       dashboardHeader(title = "ACS CSI"),
       dashboardSidebar(
         sidebarMenu(id = "tabs",
-                    menuItem("1. Load CSI file", tabName = "load", icon = icon("file-upload")),
+                    menuItem("1. Load file", tabName = "load", icon = icon("file-upload")),
                     menuItem("2. Send emails", tabName = "email", icon = icon("envelope")),
                     hr(style = "width:80%"),
                     menuItem("Store Email List", tabName = "dbase", icon = icon("database")),
