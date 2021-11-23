@@ -263,7 +263,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           
           ## 2. Send emails -------------------------------------------
           # Email msg
-          date_time <- blastula::add_readable_time()
+          #date_time <- blastula::add_readable_time()
           
           email_msg <-
             blastula::compose_email(
@@ -273,7 +273,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             The {csi_type()} is attached:
 
             ")),
-              footer = blastula::md(glue::glue("Email sent on {date_time}."))
+              footer = blastula::md(glue::glue("Never forget!  {praise::praise()}."))
             )
           
           ### Add attachment ----
@@ -289,19 +289,22 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             dta %>% 
             mutate(
               
-              send_result =  map2(
-                
-                .x = email_msg, 
-                .y = email,
+              send_result =  pmap(
+                list(                
+                  msg = email_msg, 
+                  address = email,
+                  store = store_code
+                ),
                 .f = purrr::safely(
                   
-                  function(msg, address){
+                  function(msg, address, store){
                     
                     blastula::smtp_send(
                       email   = msg,
                       to      = address, 
                       from    = from,
-                      subject = paste0(csi_type(), " - Date: ", csi_date_text()),
+                     # subject = paste0(csi_type(), store_code," - Date: ", csi_date_text()),
+                      subject = glue::glue("{gsub('ACS ', '', csi_type())} - {store} - Date:{csi_date_text()}"),
                       credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
                     )
                   }
