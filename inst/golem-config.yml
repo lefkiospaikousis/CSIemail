@@ -1,6 +1,6 @@
 default:
   golem_name: CSIemail
-  golem_version: 0.0.2
+  golem_version: 0.0.3
   app_prod: no
   smtp_creds: gmail
   sender: lefkiospaik@gmail.com
