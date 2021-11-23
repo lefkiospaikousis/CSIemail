@@ -70,7 +70,9 @@ as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
   writeData(xl_out, 1, store_code, startRow = 10, startCol = 2)
   
   writeData(xl_out, 1, format(Sys.Date(), "%d-%m-%Y"), startRow = 3, startCol = 2)
-  writeData(xl_out, 1, format(Sys.time(), "%H:%M:%S"), startRow = 4, startCol = 2)
+  writeData(xl_out, 1, 
+            format(lubridate::with_tz(Sys.time(), tzone = "EET"), "%H:%M:%S"), 
+            startRow = 4, startCol = 2)
   
   # Declare total
   writeData(xl_out, 1, total_text, startRow = total_row, startCol = 4)
