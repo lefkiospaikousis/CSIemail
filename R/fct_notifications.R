@@ -22,6 +22,6 @@ error_csi_file <- function(csi_type){
   
   shinyFeedback::hideFeedback("file_csi")
   shinyFeedback::showFeedbackDanger("file_csi", 
-                                    paste0("Something went wrong with your CSI file. Probably not a valid ", csi_type, " csi file"))
+                                    paste0("Something went wrong with your data file. Probably not a valid ", csi_type, " file"))
   
 }
