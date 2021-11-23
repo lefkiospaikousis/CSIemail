@@ -22,10 +22,11 @@ read_ticket_hour <- function(path){
       select(-EMPTY, -star, -contact, -value, -ticket_id, -store_name, -items) %>% 
       {.}
     
+    # if any of os, debit, credit is empty, then is read as logical
+    logical <- select(out, all_of(vars_sum_ticketHour)) %>% purrr::keep(is.logical) 
     
-    numeric <- select(out, all_of(vars_sum_ticketHour)) %>% purrr::keep(is.logical) 
     
-    if(ncol(numeric) >0 ){
+    if(ncol(logical) == length(vars_sum_ticketHour)){
       
       return(NULL)
     }
