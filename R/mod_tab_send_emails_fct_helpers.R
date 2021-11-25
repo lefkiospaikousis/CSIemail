@@ -55,7 +55,7 @@ as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
   xl_out <- openxlsx::loadWorkbook(path)
   
   
-  start_row <- 13
+  start_row <- 8
   n_row <- nrow(dta)
   total_row <- start_row + n_row + 3
   
@@ -66,13 +66,13 @@ as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
                            tableStyle = "TableStyleMedium16"
   )
   
-  writeData(xl_out, 1, store_name, startRow = 9, startCol = 2)
-  writeData(xl_out, 1, store_code, startRow = 10, startCol = 2)
+  writeData(xl_out, 1, store_name, startRow = 5, startCol = 5)
+  writeData(xl_out, 1, store_code, startRow = 6, startCol = 5)
   
-  writeData(xl_out, 1, format(Sys.Date(), "%d-%m-%Y"), startRow = 3, startCol = 2)
+  #writeData(xl_out, 1, format(Sys.Date(), "%d/%m/%Y %H:%M:%S"), startRow = 3, startCol = 2)
   writeData(xl_out, 1, 
-            format(lubridate::with_tz(Sys.time(), tzone = "EET"), "%H:%M:%S"), 
-            startRow = 4, startCol = 2)
+            format(lubridate::with_tz(Sys.time(), tzone = "EET"), "%d/%m/%Y %H:%M:%S"), 
+            startRow = 3, startCol = 2)
   
   # Declare total
   writeData(xl_out, 1, total_text, startRow = total_row, startCol = 4)
@@ -87,16 +87,16 @@ as_excel_wb <- function(dta, store_code, store_name, csi_type, csi_date){
     # single date for ACS csi
     csi_date <- as.character(csi_date[[1]])
     
+    writeData(xl_out, 1, csi_date, startRow = 5, startCol = 2)
     writeData(xl_out, 1, csi_date, startRow = 6, startCol = 2)
-    writeData(xl_out, 1, csi_date, startRow = 7, startCol = 2)
   }
   
   if(length(csi_date) == 2){
     # from date and to date for TH
-    csi_date <- format(csi_date, "%d-%m-%Y")
+    csi_date <- format(csi_date, "%d/%m/%Y")
     
-    writeData(xl_out, 1, csi_date[[1]], startRow = 6, startCol = 2)
-    writeData(xl_out, 1, csi_date[[2]], startRow = 7, startCol = 2)
+    writeData(xl_out, 1, csi_date[[1]], startRow = 5, startCol = 2)
+    writeData(xl_out, 1, csi_date[[2]], startRow = 6, startCol = 2)
   }
   
   if(length(csi_date) > 2){

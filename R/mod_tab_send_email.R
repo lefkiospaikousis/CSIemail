@@ -82,7 +82,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       paste0("<b>Transaction date(s): </b>", csi_date_text(), "<br>", 
              "<b>Data type: </b>", csi_type(), "<br>", 
              "<b>Detected: </b>", length(unique(csi_by_store()$store_code)), " stores with sales"
-             )
+      )
     })
     
     
@@ -303,7 +303,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                       email   = msg,
                       to      = address, 
                       from    = from,
-                     # subject = paste0(csi_type(), store_code," - Date: ", csi_date_text()),
+                      # subject = paste0(csi_type(), store_code," - Date: ", csi_date_text()),
                       subject = glue::glue("{gsub('ACS ', '', csi_type())} - {store} - Date:{csi_date_text()}"),
                       credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
                     )
@@ -343,10 +343,13 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
             showModal(
               modalDialog(
                 title = "Success sending emails(s)",
-                p(glue::glue("
+                div(img(src = "www/check_small.png"), style="text-align: center;"),
+                div(style="margin-top: 25px;",
+                    p(glue::glue("
                              {length(success_emails)} email(s) have been send to 
                              {n_stores} store(s)
                              ")
+                    )
                 ),
                 easyClose = TRUE
               )
