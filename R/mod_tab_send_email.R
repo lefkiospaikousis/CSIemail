@@ -66,11 +66,11 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       switch (csi_type(),
               
               "ACS CSI" = paste0(
-                format(lubridate::dmy(isolate(csi_date())), '%d-%m-%Y'),
+                format(lubridate::dmy(csi_date()), '%d-%m-%Y'),
                 collapse = "_"),
               
               "Ticket Hour Sales" = paste0(
-                format(lubridate::ymd(isolate(csi_date())), '%d-%m-%Y')
+                format(lubridate::ymd(csi_date()), '%d-%m-%Y')
                 , collapse = "_"),
               
               stop("Wrong csi type")
