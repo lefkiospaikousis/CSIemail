@@ -236,7 +236,7 @@ mod_tab_dbase_server <- function(id, conn){
           
           msg <- "Error Deleting Store"
           print(msg)
-          print(error)
+          print(e)
           showToast("error", msg)
           
         }
