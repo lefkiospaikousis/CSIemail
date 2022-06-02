@@ -42,7 +42,7 @@ app_server <- function( input, output, session ) {
       
       db = CSIemail:::get_golem_config("db_users", configuration),
       passphrase = get_golem_config("users_passphrase", configuration)
-      #passphrase = keyring::key_get("R-shinymanager-key", "obiwankenobi")
+      
     ),
     keep_token = TRUE
   )
@@ -75,16 +75,6 @@ app_server <- function( input, output, session ) {
   from <- blastula::creds_key(creds_key)$user
   
   email_db <- DBI::dbConnect(RSQLite::SQLite(), path)
-  
-  
-  # # User Management only if an ADMIN
-  # 
-  # output$managerUI <- renderMenu({
-  #   if(isTRUE(reactiveValuesToList(res_auth)$admin))
-  #     menuItem("User Management", tabName = "user_manage", icon = icon("bell")
-  #              
-  #     )
-  # })
   
   
   # User IP Information -----------------------------------------------------
