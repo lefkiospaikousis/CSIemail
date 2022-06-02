@@ -43,7 +43,8 @@ app_server <- function( input, output, session ) {
       db = CSIemail:::get_golem_config("db_users", configuration),
       passphrase = get_golem_config("users_passphrase", configuration)
       #passphrase = keyring::key_get("R-shinymanager-key", "obiwankenobi")
-    )
+    ),
+    keep_token = TRUE
   )
   
   
