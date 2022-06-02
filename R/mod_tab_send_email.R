@@ -13,14 +13,18 @@ mod_tab_send_email_ui <- function(id){
     
     fluidRow(
       col_10(
-        box(title = "", width = NULL, 
-            # actionButton("browser", "browser"),
-            tags$script("$('#browser').show();"),
-            actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
-            hr(width = "80%"),
-            htmlOutput(ns("csi_type_UI")),
-            h4("List of stores with transactions - Select the stores to send email to"),
-            reactable::reactableOutput(ns("stores"))
+        shinyjs::hidden(
+          div(id = ns("send_box"),
+              box(title = "", width = NULL, 
+                  # actionButton("browser", "browser"),
+                  tags$script("$('#browser').show();"),
+                  actionButton(ns("send_emails"), "Send Emails", width = "100%", class = "btn-info"),
+                  hr(width = "80%"),
+                  htmlOutput(ns("csi_type_UI")),
+                  h4("List of stores with transactions - Select the stores to send email to"),
+                  reactable::reactableOutput(ns("stores"))
+              )
+          )
         )
       )
     )
@@ -128,6 +132,8 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       rv$send_report <-  csi_by_store() %>% 
         select(-data, -filename) %>% 
         mutate(send_success = FALSE)
+      
+      shinyjs::showElement("send_box", anim = TRUE)
       
     })
     
