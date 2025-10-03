@@ -139,4 +139,10 @@ app_server <- function( input, output, session ) {
     reactiveValuesToList(rv)
   })
   
+  
+  # 4. Cashier Monitoring
+  
+  mod_cashier_monitoring_server("cashier_monitoring_1")
+  
+  
 }

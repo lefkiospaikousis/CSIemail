@@ -22,8 +22,23 @@ col_names_ticket <-
     "Credit" = "credit"
   )
 
+names_cashier_monitoring <- 
+  
+  c('courier' = "courier" , 
+    'trans' = '\u039C\u03B5\u03C4\u03B1\u03C6.',# "Μεταφ.", 
+    'buy_pay' = "\u0391\u03B3\u03BF\u03C1. \u03A0\u03BB\u03B7\u03C1\u03C9\u03BC\u03AD\u03C2", # "Αγορ. Πληρωμές", 
+    'buy_get' = "\u0391\u03B3\u03BF\u03C1. \u0395\u03B9\u03C3\u03C0\u03C1\u03AC\u03BE\u03B5\u03B9\u03C2",# "Αγορ. Εισπράξεις", 
+    'an_cash' = "\u0391\u03BD\u03C4\u03B9\u03BA. \u039C\u03B5\u03C4\u03C1\u03B7\u03C4\u03AC", # "Αντικ. Μετρητά",
+    'total_cash' ="\u03A3\u03CD\u03BD\u03BF\u03BB\u03BF \u039C\u03B5\u03C4\u03C1\u03B7\u03C4\u03AC",# "Σύνολο Μετρητά", 
+    'an_cheques' = "\u0391\u03BD\u03C4\u03B9\u03BA. \u0395\u03C0\u03B9\u03C4\u03B1\u03B3\u03AD\u03C2", #"Αντικ. Επιταγές", 
+    'tip' = "Tip" , 
+    'total_card' = "\u03A3\u03CD\u03BD\u03BF\u03BB\u03BF \u039A\u03AC\u03C1\u03C4\u03B1" # "Σύνολο Κάρτα"
+  )
 
 vars_sum_ticketHour <- c("os", "debit", "credit")
+
+# What shwomn the UI and he value is the db table name
+statement_types <- c("Cashier per Store" = 'cashier_per_store', "Moneygram" = 'moneygram')
 
 # Excel templates
 
@@ -37,6 +52,8 @@ usethis::use_data(
   , vars_sum_ticketHour
   , xl_template_ACS_CSI
   , xl_template_TH_CSI
+  , names_cashier_monitoring
+  , statement_types
   , internal = TRUE
   , overwrite = TRUE
   )

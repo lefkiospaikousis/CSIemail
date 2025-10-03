@@ -368,7 +368,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           } else {
             
             msg <- "NO emails were send! Please check the email addresses"
-            message_email_failure(msg)
+            message_failure(msg)
             print(msg) # log the issue
             rv$send_ok <- FALSE
             waiter::waiter_hide()
@@ -379,7 +379,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         error = function(e) {
           
           msg <- "There was a problem and no emails were send"
-          message_email_failure(msg)
+          message_failure(msg)
           print(msg) # log the issue
           waiter::waiter_hide()
           

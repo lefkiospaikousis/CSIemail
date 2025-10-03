@@ -11,9 +11,7 @@
 mod_downloadTable_ui <- function(id, buttonLabel  = "Download .xlsx"){
   ns <- NS(id)
   tagList(
-    downloadLink(ns("downloadTable"), label = buttonLabel, class = "downExcel"),
-    tags$head(tags$style(".downExcel{background-color:transparent;} .downExcel{color: #337ab7;}  .downExcel{border:0px;}
-   .downExcel{outline:0px;} .downExcel{font-size:10px;"))
+    downloadLink(ns("downloadTable"), label = buttonLabel, class = "downExcel")
   )
 }
     

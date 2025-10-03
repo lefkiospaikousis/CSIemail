@@ -15,6 +15,6 @@ production:
   smtp_creds: acs
 dev:
   app_prod: no
-  golem_wd: C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail
+  golem_wd: !expr here::here()
   sender: lefkiospaik@gmail.com
   smtp_creds: gmail

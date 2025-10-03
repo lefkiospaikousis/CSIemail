@@ -16,7 +16,7 @@ read_ticket_hour <- function(path){
   } else {
     
     out <- 
-    temp$result %>% 
+      temp$result %>% 
       select(1:15) %>% 
       setNames(unname(col_names_ticket)) %>% 
       select(-EMPTY, -star, -contact, -value, -ticket_id, -store_name, -items) %>% 
@@ -41,7 +41,6 @@ read_ticket_hour <- function(path){
 #' @param path A path to a .xlsx or .xls file
 read_acs_csi <- function(path){
   
-  
   stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
   
   temp <- safe_readXL(path)
@@ -60,6 +59,71 @@ read_acs_csi <- function(path){
       mutate(AWB = as.character(AWB))
     
   } 
+  
+}
+
+
+read_monitoring_statement <- function(path){
+  
+  stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
+  
+  # Expect the first column courier, to be character. The rest are numeric
+  
+  temp <- safe_readXL(path)
+  
+  if(is.null(temp$result)) {
+    
+    return(NULL) 
+    
+  } else {
+    
+    # CLEAN
+    # Identify the rows that contain the store names
+    # Create a new column 'store' to hold the store names, and extract from the courier column
+    # Fill down the store names to the rows below
+    # Remove the rows that contain only store names
+    # Remove the total rows for each store
+    
+    # Clean
+    
+    dta <- temp$result
+    
+    names(dta)[1] <- 'courier'
+    
+    store_unicode = '\u039A\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1'
+    
+    needed_columns <- names_cashier_monitoring[c("courier", "total_cash")]
+    
+    if(!all(needed_columns %in% names(dta))){
+      
+      cli::cli_abort(
+      "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
+      
+    }
+    
+    
+    dta %>% 
+      # Remove the TOTALS per store
+      mutate(
+        store = ifelse(
+          grepl(paste0("^", store_unicode), courier), 
+          gsub(paste0("^", store_unicode, ": "), "", courier),
+          NA_character_),
+        .before = 1
+      ) |> 
+      tidyr::fill(store, .direction = "down") |> 
+      # remove the SHOP rows
+      filter(! grepl(paste0("^", store_unicode), courier)) |> 
+      # remove the totals per store I will calculate them later
+      filter(!is.na(courier))
+    
+  } 
+  
+  
+  
+  
+  
+  
   
 }
 
@@ -118,7 +182,7 @@ process_csi <- function(csi) {
     {.}
   
   csi_clean[[3]] <- anonymise2(csi_clean[[3]])
-            
+  
   csi_clean
   
 }
@@ -169,8 +233,8 @@ get_csi_date <- function(csi, csi_type){
                    stringr::str_extract("(?<=: ).+"),
                  
                  "Ticket Hour Sales" = c(from = min(csi$date, na.rm = TRUE),
-                                   to = max(csi$date, na.rm = TRUE)
-                                   ),
+                                         to = max(csi$date, na.rm = TRUE)
+                 ),
                  
                  stop("Invalid CSI type")
   )
