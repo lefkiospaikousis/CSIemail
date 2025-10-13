@@ -22,7 +22,7 @@ col_names_ticket <-
     "Credit" = "credit"
   )
 
-names_cashier_monitoring <- 
+names_cashier_per_store <- 
   
   c('courier' = "courier" , 
     'trans' = '\u039C\u03B5\u03C4\u03B1\u03C6.',# "Μεταφ.", 
@@ -52,7 +52,7 @@ usethis::use_data(
   , vars_sum_ticketHour
   , xl_template_ACS_CSI
   , xl_template_TH_CSI
-  , names_cashier_monitoring
+  , names_cashier_per_store
   , statement_types
   , internal = TRUE
   , overwrite = TRUE

@@ -11,32 +11,16 @@ mod_cashier_monitoring_ui <- function(id){
   ns <- NS(id)
   
   
-  
   tagList(
     
     fluidRow(
-      box(width = 3,
-          title = h3("Load a Monitoring Statement"),
-          #p('Load a Monitoring Statement'),
-          radioButtons(ns("statement_type"), "Type of statement", choices = statement_types),
-          fileInput(ns("file_statement"), "Load an .xlsx/.xls file", buttonLabel = "Load file", accept = c(".xlsx", ".xls")),
-          shinyjs::hidden(
-            div(
-              id = ns("statement_date_div"),
-              hr(),
-              dateInput(ns("statement_date"), 'Statement Date', format = "dd/mm/yyyy", value = NA),
-              mod_downloadTable_ui(ns("down_statement"), 'Download statement as .xlsx'),
-              hr(),
-              actionButton(ns("add_to_db"), "Done (add to DB)", class = 'btn-submit', width = '100%')
-            )
-          ),
-      ),
-      box(title = "Statement", width = 9,
-          #selectInput(ns("store"), "Select a store", choices = unique(dta()$store_code)),
-          
-          DT::DTOutput(ns("statement"))
-      )
+      mod_load_cashier_per_store_ui(ns("load_cashier_per_store_1"))
+    ),
+    
+    fluidRow(
+      mod_load_moneygram_statement_ui(ns("load_moneygram_statement_1"))
     )
+    
   )
 }
 
@@ -48,125 +32,41 @@ mod_cashier_monitoring_server <- function(id){
     
     ns <- session$ns
     
-    callModule(mod_downloadTable_server, id = "down_statement", table_name = "STATEMENT", statement)
+    res_load_moneygram <- mod_load_moneygram_statement_server("load_moneygram_statement_1")
     
-    correct_file_type <- c("xls", "xlsx")
+    res_load_cashier_per_store <- mod_load_cashier_per_store_server("load_cashier_per_store_1")
     
-    rv <- rv(
-      statement = NULL,
-      statement_type = NULL,
-      statement_date = NULL
+    
+    statements <- rv(
+      cashier_per_store = NULL,
+      moneygram = NULL
     )
     
-    
-    observeEvent(input$statement_type, {
-      rv$statement_type <- input$statement_type
-    })
-    
-    # if the file is read ok then show the date input 
-    
-    observeEvent(statement(), {
+    observeEvent(res_load_moneygram$statement, {
       
-      req(statement())
+      req(res_load_moneygram$statement)
       
-      shinyjs::show("statement_date_div")
+      showNotification("A Moneygram statement has been loaded", type = "message")
+      
+      statements$moneygram <- res_load_moneygram$statement
       
     })
     
     
-    # DATA ---
-    statement <- reactive({
+    observeEvent(res_load_cashier_per_store$statement, {
       
-      req(input$file_statement)
+      req(res_load_cashier_per_store$statement)
       
-      file = input$file_statement
+      showNotification("A Cashier per Store statement has been loaded", type = "message")
       
-      file_type <- tools::file_ext(file$name)
-      
-      statement_type <- input$statement_type
-      
-      if(!file_type %in% correct_file_type ) {
-        
-        msg <- paste0("This is not a valid ", statement_type, " file. We need a ", paste0(correct_file_type, collapse = '/'), " file")
-        
-        shinyFeedback::hideFeedback("file_statement")
-        shinyFeedback::showFeedbackDanger("file_statement", msg)
-        
-        return(NULL)
-      }
-      
-      dta <- tryCatch({
-        
-        
-        switch (statement_type,
-                'cashier_per_store' = read_monitoring_statement(file$datapath),
-                stop("Have you added a new type malaka?", .call = FALSE)
-        )
-        
-      },error = function(e){
-        
-        error_statement_type(statement_type, session)
-        
-        return(NULL)
-        
-      }
-      
-      )
-      
-      
-      # 
-      if(is.null(dta)){
-        
-        error_statement_type(statement_type, session)
-        
-        return(NULL)
-      }
-      
-      
-      # Finished
-      
-      shinyFeedback::hideFeedback("file_statement")
-      shinyFeedback::showFeedbackSuccess("file_statement", paste0(statement_type, " file read OK!"))
-      
-      
-      # Extra Processing of the files
-      
-      dta
+      statements$cashier_per_store <- res_load_cashier_per_store$statement
       
     })
     
     
-    # Save to rv for return
-    observeEvent(statement(), {
-      
-      rv$statement <- statement()
-      rv$statement_date <- NULL
-      updateDateInput(session, "statement_date", value = NA)
-    })
-    
-    
-    output$statement <- DT::renderDT({
-      
-      statement() %>% 
-        #select(any_of(names_cashier_monitoring)) |> 
-        datatable(
-          rownames = FALSE,
-          options = list(
-            paging = TRUE,
-            ordering = FALSE
-          )
-        )
-    })
-    
-    observeEvent(input$statement_date, {
-      
-      req(input$statement_date)
-      
-      shinyFeedback::hideFeedback("statement_date", session)
-      
-      rv$statement_date <- input$statement_date
-      
-    })
+    # observeEvent(input$statement_type, {
+    #   rv$statement_type <- input$statement_type
+    # })
     
     
     observeEvent(input$add_to_db, {
@@ -204,7 +104,7 @@ mod_cashier_monitoring_server <- function(id){
       
       new_statement <- rv$statement |> 
         # rename before entering the DB
-        select(store, all_of(names_cashier_monitoring)) |>
+        select(store, all_of(names_cashier_per_store)) |>
         mutate(
           date = as.character(rv$statement_date)
           #added_by = current_user()$user

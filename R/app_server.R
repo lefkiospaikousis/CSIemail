@@ -23,6 +23,10 @@ app_server <- function( input, output, session ) {
     
   })
   
+  observe({
+    session$userData$moneygram_stores <- readxl::read_excel('data-raw/moneygram_stores.xlsx')
+  })
+  
   
   rv <- rv(
     

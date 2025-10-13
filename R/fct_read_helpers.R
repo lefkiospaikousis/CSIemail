@@ -92,7 +92,7 @@ read_monitoring_statement <- function(path){
     
     store_unicode = '\u039A\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1'
     
-    needed_columns <- names_cashier_monitoring[c("courier", "total_cash")]
+    needed_columns <- names_cashier_per_store[c("courier", "total_cash")]
     
     if(!all(needed_columns %in% names(dta))){
       
@@ -120,13 +120,42 @@ read_monitoring_statement <- function(path){
   } 
   
   
-  
-  
-  
-  
-  
 }
 
+
+read_moneygram_statement <- function(path) {
+  
+  dta <- readxl::read_excel(path, col_names = FALSE) 
+  
+  names(dta) <- paste0('col_', 1:ncol(dta))
+  
+  dta_cleaned <- dta |> 
+    filter(grepl("Agent Name|Agent ID|TOTAL, EUR", col_1)) |>
+    mutate(
+      col_2 = if_else(grepl("TOTAL, EUR", col_1), col_8, col_2)
+    ) |>
+    select(col_1, col_2) |> 
+    mutate(
+      group = rep(1:(n()/3), each = 3)  # Create groups of 3
+    ) %>%
+    group_by(group) %>%
+    summarise(
+      agent_id = col_2[1],
+      agent_name = col_2[2],
+      total = col_2[3]
+    ) %>%
+    select(-group) 
+  
+  dta_cleaned |> 
+    # handle negative values
+    mutate(
+      total = case_when(
+        grepl("\\(", total) ~ -as.numeric(gsub("[^0-9.]", "", total)),
+        TRUE ~ as.numeric(gsub("[^0-9.-]", "", total))
+      )
+    ) 
+  
+}
 
 #' Add row totals to the data
 #' @param dta The tibble of csi
