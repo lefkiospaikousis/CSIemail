@@ -69,7 +69,7 @@ DBI::dbWriteTable(dbase, "emails", all_emails
 )
 
 dbase %>% 
-  tbl("emails")
+  tbl(db_tables[['store_emails']])
 
 DBI::dbDisconnect(dbase)
 

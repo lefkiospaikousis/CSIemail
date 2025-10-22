@@ -19,6 +19,10 @@ mod_cashier_monitoring_ui <- function(id){
     
     fluidRow(
       mod_load_moneygram_statement_ui(ns("load_moneygram_statement_1"))
+    ),
+    
+    fluidRow(
+      actionButton(ns("generate report"), "Generate Report", icon = icon("database"), class = "btn btn-primary" ),
     )
     
   )

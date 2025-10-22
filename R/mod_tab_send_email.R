@@ -55,7 +55,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       trigger()
       
       conn %>% 
-        tbl("emails") %>% 
+        tbl(db_tables[['store_emails']]) %>% 
         collect() %>% 
         tidyr::nest(email = email) %>% 
         mutate(email = map(email, ~pull(., email)))

@@ -59,7 +59,7 @@ mod_tab_dbase_server <- function(id, conn){
       rv$db_trigger
       
       conn %>% 
-        tbl("emails") %>% 
+        tbl(db_tables[['store_emails']]) %>% 
         collect()
     })
     
