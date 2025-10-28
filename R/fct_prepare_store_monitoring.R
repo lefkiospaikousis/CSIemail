@@ -26,7 +26,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
   all_stores <- dta_cashier |> 
     select(store, courier, total_cash) |>
     group_by(store) |> 
-    nest(.key = 'per_courier') |>
+    tidyr::nest(.key = 'per_courier') |>
     left_join(totals_shop, by = 'store') |> 
     mutate(
       # add store_cash as a row in data
@@ -118,7 +118,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     
     tbl_store <- all_stores |> 
       filter(store == !!store) |> 
-      unnest(cols = c(per_courier)) |> 
+      tidyr::unnest(cols = c(per_courier)) |> 
       select(store, courier, total_cash) |> 
       # arrange the row with courier = Store Total and put it last
       arrange(store, courier == " ") |> 
@@ -126,7 +126,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     
     # STORE NAME
     # Write the store name as headline
-    writeData(wb, 'Sheet1', 
+    openxlsx::writeData(wb, 'Sheet1', 
               paste0('Store: ', store), 
               startRow = row_start, startCol = 1, 
               colNames = FALSE
@@ -141,7 +141,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     
     
     ## Courier data -----------------------------------------------------------
-    writeData(wb, 'Sheet1', 
+    openxlsx::writeData(wb, 'Sheet1', 
               tbl_store |> select(-store), 
               startRow = row_start + 1, 
               startCol = 1, 
@@ -160,9 +160,9 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     # Write the formula for the difference
     length_entries <- nrow(tbl_store) - 1 # remove the total row
     
-    writeFormula(wb, 'Sheet1', 
+    openxlsx::writeFormula(wb, 'Sheet1', 
                  x = rep('(cash_received+visa_received+cheques_received)-tamiaki', length_entries),
-                 startRow = (row_start + 1):((row_start + 1) + length_entries), 
+                 startRow = (row_start + 1), 
                  startCol = col_difference
     )
     
@@ -210,7 +210,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
       select(store_moneygram) 
     
     # we start at the store level row , which is the row_start
-    writeData(wb, 'Sheet1', 
+    openxlsx::writeData(wb, 'Sheet1', 
               store_moneygram, 
               startRow = row_start, 
               startCol = col_moneygram_owed, 
@@ -218,7 +218,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     )
     
     # Write the formula for the difference
-    writeFormula(wb, 'Sheet1', 
+    openxlsx::writeFormula(wb, 'Sheet1', 
                  x = 'moneygram_received-moneygram_owed',
                  startRow = row_start, 
                  startCol = col_moneygram_difference
