@@ -10,7 +10,8 @@
 mod_load_viva_per_store_ui <- function(id){
   ns <- NS(id)
   tagList(
-    box(width = 3,
+    
+    box(width = 12,
         title = tags$b("Load a VIVA statement"),
         fileInput(ns("file_statement"), "Load an .csv file", buttonLabel = "Load file", accept = c(".csv")),
         shinyjs::hidden(
@@ -20,10 +21,10 @@ mod_load_viva_per_store_ui <- function(id){
             mod_downloadTable_ui(ns("down_statement"), 'Download statement as .xlsx')
           )
         )
-    ),
-    box(title = "VIVA per Store report", width = 9,
-        DT::DTOutput(ns("statement"))
     )
+    # box(title = "VIVA per Store report", width = 9,
+    #     DT::DTOutput(ns("statement"))
+    # )
   )
 }
     

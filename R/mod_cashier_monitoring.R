@@ -19,32 +19,59 @@ mod_cashier_monitoring_ui <- function(id){
   ")),
     
     fluidRow(
-      mod_load_cashier_per_store_ui(ns("load_cashier_per_store_1"))
+      column(3,
+             
+             mod_load_cashier_per_store_ui(ns("load_cashier_per_store_1")),
+             
+             mod_load_moneygram_statement_ui(ns("load_moneygram_statement_1")),
+             
+             mod_load_viva_per_store_ui(ns("load_viva_per_store_1")),
+             
+      ),
+      column(9,
+             box(title = tags$b("Loaded files"), 
+                 width = 12,
+                 
+                 tabsetPanel(
+                   id = ns('tabs_loaded_statements'),
+                   tabPanel(
+                     title = "Cashier per Store",
+                     br(),
+                     DT::DTOutput(ns("statement_cashier_per_store"))
+                   ),
+                   tabPanel(
+                     title = "Moneygram Statement",
+                     br(),
+                     DT::DTOutput(ns("statement_moneygram"))
+                   ),
+                   tabPanel(
+                     title = "VIVA statement",
+                     br(),
+                     DT::DTOutput(ns("statement_viva_per_store"))
+                   )
+                 )
+             )
+             
+      )
+      
     ),
-    
     fluidRow(
-      mod_load_moneygram_statement_ui(ns("load_moneygram_statement_1"))
-    ),
-    
-    fluidRow(
-      mod_load_viva_per_store_ui(ns("load_viva_per_store_1"))
-    ),
-    
-    
-    # add space before the box and space after
-    fluidRow(
-      #column(3),
-      box(
-        width = 3,
-        title = tags$b("Generate Cashier Monitoring Templates"),
-        "Once both statements are loaded, click the button below to generate the Excel templates per city and email them directly
-        to the city cashiers",
-        br(),
-        br(),
-        shinyjs::disabled(
-          actionButton(ns("generate_reports"), "Generate Reports and Email them", width = "100%", icon = icon("industry"), 
-                       class = "btn btn-submit" )
-        )
+      column(3,
+             hr(),
+             box(
+               width = 12,
+               title = tags$b("Generate Cashier Monitoring Templates"),
+               "Once Cashier report and  Moneygram statements are loaded, click the button below to 
+               generate the Excel templates per city and email them directly
+               to the city cashiers",
+               br(),
+               br(),
+               shinyjs::disabled(
+                 actionButton(ns("generate_reports"), "Generate Reports and Email them", 
+                              width = "100%", icon = icon("industry"), 
+                              class = "btn-generate" )
+               )
+             )
       )
     )
     
@@ -124,6 +151,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       statements$moneygram <- res_load_moneygram$statement
       
+      updateTabsetPanel(session, inputId = "tabs_loaded_statements", selected = "Moneygram Statement")
+      
     })
     
     
@@ -135,6 +164,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       statements$cashier_per_store <- res_load_cashier_per_store$statement
       
+      updateTabsetPanel(session, inputId = "tabs_loaded_statements", selected = "Cashier per Store")
+      
     })
     
     observeEvent(res_load_viva_per_store$statement, {
@@ -145,6 +176,55 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       # Currently not used in report generation
       statements$viva_per_store <- res_load_viva_per_store$statement
+      
+      updateTabsetPanel(session, inputId = "tabs_loaded_statements", selected = "VIVA statement")
+      
+    })
+    
+    
+    output$statement_moneygram <- DT::renderDT({
+      
+      validate(need(!is.null(statements$moneygram), "No Moneygram statement loaded"))
+      req(statements$moneygram)
+      
+      DT::datatable(
+        statements$moneygram,
+        options = list(
+          pageLength = 10,
+          scrollX = TRUE
+        )
+      )
+      
+    })
+    
+    output$statement_cashier_per_store <- DT::renderDT({
+      
+      validate(need(!is.null(statements$cashier_per_store), "No Cashier per Store statement loaded"))
+      
+      req(statements$cashier_per_store)
+      
+      DT::datatable(
+        statements$cashier_per_store,
+        options = list(
+          pageLength = 10,
+          scrollX = TRUE
+        )
+      )
+      
+    })
+    
+    output$statement_viva_per_store <- DT::renderDT({
+      
+      validate(need(!is.null(statements$viva_per_store), "No VIVA statement loaded"))
+      req(statements$viva_per_store)
+      
+      DT::datatable(
+        statements$viva_per_store,
+        options = list(
+          pageLength = 10,
+          scrollX = TRUE
+        )
+      )
       
     })
     

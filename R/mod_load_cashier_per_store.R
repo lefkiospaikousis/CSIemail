@@ -11,7 +11,7 @@ mod_load_cashier_per_store_ui <- function(id){
   ns <- NS(id)
   tagList(
     
-    box(width = 3,
+    box(width = 12,
         title = tags$b("Load a Cashier per Store report"),
         fileInput(ns("file_statement"), "Load an .xlsx/.xls file", buttonLabel = "Load file", accept = c(".xlsx", ".xls")),
         shinyjs::hidden(
@@ -22,10 +22,10 @@ mod_load_cashier_per_store_ui <- function(id){
             
           )
         )
-    ),
-    box(title = "Cashier per Store report", width = 9,
-        DT::DTOutput(ns("statement"))
     )
+    # box(title = "Cashier per Store report", width = 9,
+    #     DT::DTOutput(ns("statement"))
+    # )
     
   )
 }
