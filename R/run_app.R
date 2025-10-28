@@ -22,7 +22,7 @@ run_app <- function(
       #                               tags_top = tags$div(
       #   tags$h4("Cash Sales Invoice - Emails", style = "align:center"),
       #   tags$img(
-      #     src =  "www/ACS_logo1.jpg"  #"https://www.r-project.org/logo/Rlogo.png"
+      #     src =  "www/logo.png"  #"https://www.r-project.org/logo/Rlogo.png"
       #     , width = 100
       #   )
       # )),
