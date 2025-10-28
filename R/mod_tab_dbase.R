@@ -43,7 +43,6 @@ mod_tab_dbase_server <- function(id, conn){
     
     ns <- session$ns
     
-    
     tbl_emails_proxy <- DT::dataTableProxy("tbl_emails")
     
     rv <- rv(
@@ -62,7 +61,6 @@ mod_tab_dbase_server <- function(id, conn){
         tbl(db_tables[['store_emails']]) %>% 
         collect()
     })
-    
     
     
     output$tbl_emails <- renderDT({
@@ -244,14 +242,6 @@ mod_tab_dbase_server <- function(id, conn){
       
       
     })
-    
-    
-    
-    
-    
-    
-    
-    
     
     return(rv)
     

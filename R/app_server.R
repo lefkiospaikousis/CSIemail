@@ -19,7 +19,7 @@ app_server <- function( input, output, session ) {
     cat("Doing application cleanup\n")
     cat("-----\n Removing connections\n")
     
-    DBI::dbDisconnect(email_db)
+    DBI::dbDisconnect(dbase_csi)
     
   })
   
@@ -88,7 +88,7 @@ app_server <- function( input, output, session ) {
   
   from <- blastula::creds_key(creds_key)$user
   
-  email_db <- DBI::dbConnect(RSQLite::SQLite(), path)
+  dbase_csi <- DBI::dbConnect(RSQLite::SQLite(), path)
   
   
   # User IP Information -----------------------------------------------------
@@ -127,7 +127,7 @@ app_server <- function( input, output, session ) {
   # 2. Send emails
   
   mod_tab_send_email_server("tab_email_ui_1",
-                            conn = email_db,
+                            conn = dbase_csi,
                             trigger = reactive(rv$db_trigger),
                             reactive(rv$csi_type),
                             reactive(rv$csi),
@@ -140,9 +140,9 @@ app_server <- function( input, output, session ) {
   
   # 3. Email dbase
   
-  dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = email_db)
+  res_tab_dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = dbase_csi)
   
-  observeEvent(dbase$db_trigger, {
+  observeEvent(res_tab_dbase$db_trigger, {
     
     rv$db_trigger   <- isolate(rv$db_trigger) + 1
     
@@ -156,7 +156,7 @@ app_server <- function( input, output, session ) {
   
   # 4. Cashier Monitoring
   
-  mod_cashier_monitoring_server("cashier_monitoring_1")
+  mod_cashier_monitoring_server("cashier_monitoring_1", dbase_csi)
   
   
 }
