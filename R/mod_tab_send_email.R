@@ -169,19 +169,19 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           selection = "multiple",
           columns = list(
             
-            send_success = reactable::colDef(name = "Email is sent?", 
+            send_success = reactable::colDef(name = "Email is sent?", , filterable = TRUE,
                                              cell = function(value) {
                                                # Render as an X mark or check mark
                                                if (isFALSE(value)) "\u274c No" else "\u2714\ufe0f Yes"
                                              }),
-            email        = reactable::colDef(name = "Email", 
+            email        = reactable::colDef(name = "Email", , filterable = TRUE,
                                              cell = function(value){
                                                
                                                if(is.null(value)) "" else value
                                              }),
-            store_name   = reactable::colDef(name = "Store name"),
+            store_name   = reactable::colDef(name = "Store name", filterable = TRUE),
             
-            store_code   = reactable::colDef(name = "Store code")
+            store_code   = reactable::colDef(name = "Store code", filterable = TRUE)
           )
         )
     })
