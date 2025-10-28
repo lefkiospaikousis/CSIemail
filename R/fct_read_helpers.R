@@ -97,7 +97,7 @@ read_monitoring_statement <- function(path){
     if(!all(needed_columns %in% names(dta))){
       
       cli::cli_abort(
-      "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
+        "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
       
     }
     
@@ -156,6 +156,40 @@ read_moneygram_statement <- function(path) {
     ) 
   
 }
+
+
+read_viva_statement <- function(path){
+  
+  #path <- 'SampleData/_VIVA_24-10-2025.csv'
+  stopifnot(tools::file_ext(path) %in% c("csv"))
+  
+  temp <- safe_readCSV(path)
+  
+  if(is.null(temp$result)) {
+    
+    return(NULL) 
+    
+  } else {
+    
+    dta <- temp$result
+    
+    needed_columns <- c('Transaction Type', 'ACS Account Code/Store', 'Amount')
+    
+    if(!all(needed_columns %in% names(dta))){
+      
+      cli::cli_abort(
+        "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
+      
+    }
+    
+    dta |> 
+      select(all_of(needed_columns)) 
+    
+  } 
+  
+  
+}
+
 
 #' Add row totals to the data
 #' @param dta The tibble of csi

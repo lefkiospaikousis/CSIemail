@@ -10,7 +10,7 @@
 mod_cashier_monitoring_ui <- function(id){
   ns <- NS(id)
   
-  
+  # For the progress modal
   tagList(
     tags$script(HTML("
     Shiny.addCustomMessageHandler('updateProgress', function(content) {
@@ -27,7 +27,25 @@ mod_cashier_monitoring_ui <- function(id){
     ),
     
     fluidRow(
-      actionButton(ns("generate_reports"), "Generate Report", icon = icon("database"), class = "btn btn-primary" ),
+      mod_load_viva_per_store_ui(ns("load_viva_per_store_1"))
+    ),
+    
+    
+    # add space before the box and space after
+    fluidRow(
+      #column(3),
+      box(
+        width = 3,
+        title = tags$b("Generate Cashier Monitoring Templates"),
+        "Once both statements are loaded, click the button below to generate the Excel templates per city and email them directly
+        to the city cashiers",
+        br(),
+        br(),
+        shinyjs::disabled(
+          actionButton(ns("generate_reports"), "Generate Reports and Email them", width = "100%", icon = icon("industry"), 
+                       class = "btn btn-submit" )
+        )
+      )
     )
     
   )
@@ -43,7 +61,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     
     # Reactive values to track progress
     progress <- reactiveValues(
-      step = 0,  # 0=not started, 1=preparing, 2=done, 3=preparing next, etc.
+      step = 0,  # 0 = not started (will show Preparing..), 1 = (actual) preparing, 2 = done
       current_report = 1,
       total_reports = NULL,
       messages = character(0),
@@ -53,7 +71,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     
     statements <- rv(
       cashier_per_store = NULL,
-      moneygram = NULL
+      moneygram = NULL,
+      viva_per_store = NULL
     )
     
     store_emails <- reactive({
@@ -79,9 +98,23 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
     })
     
+    observe({
+      
+      # Enable the generate reports button only if both statements are loaded
+      if (!is.null(statements$cashier_per_store) && !is.null(statements$moneygram)) {
+        shinyjs::enable("generate_reports")
+      } else {
+        shinyjs::disable("generate_reports")
+      }
+      
+    })
+    
     res_load_moneygram <- mod_load_moneygram_statement_server("load_moneygram_statement_1")
     
     res_load_cashier_per_store <- mod_load_cashier_per_store_server("load_cashier_per_store_1")
+    
+    res_load_viva_per_store <- mod_load_viva_per_store_server("load_viva_per_store_1")
+    
     
     observeEvent(res_load_moneygram$statement, {
       
@@ -101,6 +134,17 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       showNotification("A Cashier per Store statement has been loaded", type = "message")
       
       statements$cashier_per_store <- res_load_cashier_per_store$statement
+      
+    })
+    
+    observeEvent(res_load_viva_per_store$statement, {
+      
+      req(res_load_viva_per_store$statement)
+      
+      showNotification("A VIVA per Store statement has been loaded", type = "message")
+      
+      # Currently not used in report generation
+      statements$viva_per_store <- res_load_viva_per_store$statement
       
     })
     
@@ -218,7 +262,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
             
             # All reports done
             progress$messages <- c(progress$messages, paste(icon('circle-check', style = 'color:green;font-size:20px'), 
-                                   " All reports completed successfully!"))
+                                                            " All reports completed successfully!"))
             progress$is_complete <- TRUE
             progress$is_running <- FALSE
             
@@ -233,7 +277,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       bindEvent(timer())
     
     
-    
+    # Launch the Modal and indicate that process started
     observeEvent(input$generate_reports, {
       
       req(statements$cashier_per_store)
