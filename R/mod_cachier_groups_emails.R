@@ -1,4 +1,4 @@
-#' tab_dbase UI Function
+#' cachier_groups_emails UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,13 +7,13 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_tab_dbase_ui <- function(id){
+mod_cachier_groups_emails_ui <- function(id){
   ns <- NS(id)
   tagList(
     
     fluidRow(
-      col_6(
-        box(width = NULL,
+      col_12(
+        #box(width = NULL,
             div(id = "tbl_buttons",
                 actionButton(ns("btn_add"), "Add", icon("plus"), 
                              style="color: #fff; background-color: #86af49"),
@@ -26,74 +26,72 @@ mod_tab_dbase_ui <- function(id){
                 style = "margin-bottom:8px" 
             ),
             br(),
-            DTOutput(ns("tbl_emails"))
-        )
-      ),
-      col_6(
-        box(width = NULL,
-            mod_cachier_groups_emails_ui(ns("cachier_groups_emails_1"))
-        )
+            DTOutput(ns("city_emails"))
+        #)
       )
     )
-    
   )
 }
-
-#' tab_dbase Server Functions
+    
+#' cachier_groups_emails Server Functions
 #'
-#' @param conn The connection to the RSQLite
 #' @noRd 
-mod_tab_dbase_server <- function(id, conn){
+mod_cachier_groups_emails_server <- function(id, conn){
   moduleServer( id, function(input, output, session){
-    
     ns <- session$ns
+ 
     
-    
-    
-    res_cashier_group_emails <- mod_cachier_groups_emails_server("cachier_groups_emails_1", conn)
-
-    
-    tbl_emails_proxy <- DT::dataTableProxy("tbl_emails")
+    #city_emails_proxy <- DT::dataTableProxy("city_emails")
     
     rv <- rv(
       db_trigger = 0,
-      store_to_edit = NULL
+      city_to_edit = NULL
     )
     
     email_regex <- "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$"
     email_regex <- "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
     
-    tbl_emails <- reactive({
+    cashier_groups <- reactive({
       
       rv$db_trigger
       
       conn %>% 
-        tbl(db_tables[['store_emails']]) %>% 
+        tbl(db_tables[['cashier_groups']]) %>% 
         collect()
     })
     
     
-    output$tbl_emails <- renderDT({
+    city_emails <- reactive({
       
-      tbl_emails() %>%
-        select(-uid) %>% 
+      rv$db_trigger
+      
+      conn %>% 
+        tbl(db_tables[['city_emails']]) %>% 
+        collect()
+    })
+    
+    
+    output$city_emails <- renderDT({
+      
+      city_emails() |> 
+        select(-uuid) |> 
         datatable(
           options = list()
           , rownames = FALSE
-          , colnames = c("Store Code" = "store_code", "Store Name" = "store_name", "Email" = "email")
+          , colnames = c("City" = "city", "Email" = "email")
           , selection = "single"
-          , caption = "The ACS stores and associated email(s)"
+          , caption = "The ACS Head stores and associated email(s)"
           , filter = "top"
         )
     })
     
     
-    ids_selected <- reactive(input$tbl_emails_rows_selected)
+    ids_selected <- reactive(input$city_emails_rows_selected)
     
     
     observeEvent(input$btn_add, {
       
-      showModal(entry_form(session))
+      showModal(entry_form_city(session))
       
     })
     
@@ -107,18 +105,17 @@ mod_tab_dbase_server <- function(id, conn){
         
       } else {
         
-        # Edit the store
-        store <- as.list(tbl_emails()[ids_selected(), ])
+        # Edit the city
+        city <- as.list(city_emails()[ids_selected(), ])
         
         showModal(
-          entry_form(session, edit = TRUE, store = store)
+          entry_form_city(session, edit = TRUE, city = city)
         )
         
-        updateTextInput(session, "store_code", value = store$store_code)
-        updateTextInput(session, "store_name", value = store$store_name)
-        updateTextInput(session, "email", value = store$email)
+        updateTextInput(session, "city", value = city$city)
+        updateTextInput(session, "email", value = city$email)
         
-        rv$store_to_edit = store
+        rv$city_to_edit = city
       }
       
       
@@ -130,32 +127,32 @@ mod_tab_dbase_server <- function(id, conn){
         
         expr = {
           
-          if(is.null(rv$store_to_edit)) {
+          if(is.null(rv$city_to_edit)) {
             
-            # new store/ email
-            append_data(conn, "emails", form_data())
+            # new city/ email
+            append_data(conn, db_tables[["city_emails"]], form_data())
             
             showToast("success",
-                      paste0("Store: ",  form_data()$store_code, " was added in the database"),
+                      paste0("City: ",  form_data()$city, " was added in the database"),
                       .options = list(positionClass = "toast-top-center")
             )
             
           } else {
             
-            # edit store
+            # edit city
             DBI::dbExecute(
               conn,
-              "UPDATE emails SET store_name=$store_name, store_code=$store_code, email=$email WHERE uid=$uid",
+              "UPDATE city_emails SET city=$city, email=$email WHERE uuid=$uuid",
               params = as.list(form_data())
-              
             )
             
             showToast("success",
-                      glue("Store: {form_data()$store_name} - {form_data()$store_code} was edited in the database"),
+                      glue("City: {form_data()$city} was edited in the database"),
                       .options = list(positionClass = "toast-top-center")
             )
             
-            rv$store_to_edit = NULL
+            #Nullyfy the edit object in case the next action is an add
+            rv$city_to_edit = NULL
             
           }
           
@@ -168,7 +165,7 @@ mod_tab_dbase_server <- function(id, conn){
         error = function(e) {
           
           print(e)
-          showModal(modalDialog(title = "Unable to add/ edit store to the database",
+          showModal(modalDialog(title = "Unable to add/ edit city to the database",
                                 p("Cannot add/ edit this to the database. Something is wrong"),
                                 p("Maybe the connection to the database is lost. Refresh the webage and try again")
           )
@@ -189,13 +186,12 @@ mod_tab_dbase_server <- function(id, conn){
     
     form_data <- reactive({
       
-      store <- isolate(rv$store_to_edit)
+      city <- isolate(rv$city_to_edit)
       
       data.frame(
-        uid = if(!is.null(store)) {store$uid} else {uuid::UUIDgenerate()},
-        store_code = input$store_code,
-        store_name = input$store_name,
-        email      = input$email, 
+        uuid   = if(!is.null(city)) {city$uuid} else {uuid::UUIDgenerate()},
+        city  = input$city,
+        email = input$email, 
         stringsAsFactors = FALSE)
       
     })
@@ -212,9 +208,9 @@ mod_tab_dbase_server <- function(id, conn){
         
       } else {
         
-        store <- tbl_emails()[ids_selected(), ]
+        city <- city_emails()[ids_selected(), ]
         
-        showModal(verify_delete(session, store))
+        showModal(verify_delete_city(session, city))
         
       }
       
@@ -224,25 +220,25 @@ mod_tab_dbase_server <- function(id, conn){
       
       removeModal()
       
-      uids <- tbl_emails()[ids_selected(), ]$uid
-      store_name <- tbl_emails()[ids_selected(), ]$store_name
+      uids <- city_emails()[ids_selected(), ]$uuid
+      city <- city_emails()[ids_selected(), ]$city
       
       tryCatch(
         
         expr = {
-          delete_data(conn, "emails", "uid", uids)
+          delete_data(conn, db_tables[["city_emails"]], "uuid", uids)
           
           rv$db_trigger <- isolate(rv$db_trigger) + 1
           
           showToast("success",
-                    paste0("Store: ",  store_name, " was deleted from the Database"),
+                    paste0("City: ",  city, " was deleted from the Database"),
                     .options = list(positionClass = "toast-top-center")
           )
         },
         
         error = function(e) {
           
-          msg <- "Error Deleting Store"
+          msg <- "Error Deleting City"
           print(msg)
           print(e)
           showToast("error", msg)
@@ -255,12 +251,12 @@ mod_tab_dbase_server <- function(id, conn){
     
     return(rv)
     
+    
   })
-  
 }
-
+    
 ## To be copied in the UI
-# mod_tab_dbase_ui("tab_dbase_ui_1")
-
+# mod_cachier_groups_emails_ui("cachier_groups_emails_1")
+    
 ## To be copied in the server
-# mod_tab_dbase_server("tab_dbase_ui_1")
+# mod_cachier_groups_emails_server("cachier_groups_emails_1")

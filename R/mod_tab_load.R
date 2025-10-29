@@ -13,7 +13,7 @@ mod_tab_load_ui <- function(id){
     #h3("Load the a Statement"),
     #tags$hr(style="border-color: black;"),
     fluidRow(
-      box(title = h3("Load a Statement", style="color:#B88C4A"),
+      box(title = tags$b("Load a Statement", style="color:#DD0827"),
           radioButtons(ns("csi_type"), "Type of statement", choices = c("ACS CSI", "Ticket Hour Sales"), inline = TRUE),
           fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
                     accept = c(".xlsx", ".xls", ".csv"))
