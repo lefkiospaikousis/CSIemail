@@ -5,7 +5,7 @@
 #' @return The return value, if any, from executing the function.
 #'
 #' @noRd
-prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name = 'Tamiaki') {
+prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, city_name = 'Tamiaki') {
   
   
   cli::cli_alert_info("Preparing store monitoring for city {.val {city_name}}")
@@ -19,7 +19,11 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     left_join(
       dta_moneygram |> select(store, store_moneygram = total), 
       by = c("store")
-    ) 
+    ) |> 
+    left_join(
+      dta_viva |> select(store, store_viva = total), 
+      by = c("store")
+    )
   
   
   
@@ -51,13 +55,16 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
   col_visa <- 4
   col_cheques <- 5
   col_difference <- 6
+  col_viva_owed <- 7
   
-  col_notes <- 7
+  col_notes <- 8
   
-  col_moneygram_owed <- 9
-  col_moneygram_received <- 10
-  col_moneygram_difference <- 11
-  col_total_tamiaki_moneygram <- 13
+  col_moneygram_owed <- 10
+  col_moneygram_received <- 11
+  col_moneygram_difference <- 12
+  
+  
+  col_total_tamiaki_moneygram <- 14
   
   font_size <- 14
   font_size_14_bold <- openxlsx::createStyle(fontSize = font_size, textDecoration = 'bold')
@@ -69,7 +76,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
   writeData(wb, 'Sheet1', 
             total_csi_moneygram, 
             startRow = 2, 
-            startCol = 13, 
+            startCol = col_total_tamiaki_moneygram, 
             withFilter = FALSE,
             colNames = FALSE
   )
@@ -92,7 +99,6 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
                      rows = 2, cols = col_moneygram_difference,
                      gridExpand = TRUE, stack = TRUE
   )
-  
   
   # Unlock the Deposit cells
   openxlsx::addStyle(wb, 'Sheet1', style = unlock,
@@ -226,22 +232,52 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
     
     # style the 3 cells in the row with borders
     openxlsx::addStyle(wb, 'Sheet1',
-                       style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right')),
+                       style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
+                                                     fontSize = font_size
+                                                     ),
                        rows = row_start,
                        cols = col_moneygram_owed:col_moneygram_difference,
                        gridExpand = TRUE, stack = TRUE
     )
     
-    # style the received and difference cell as grey
+    # style the owed cell as yellow
     openxlsx::addStyle(wb, 'Sheet1',
                        style = openxlsx::createStyle(fgFill = 'yellow'),
                        rows = row_start,
-                       cols = c(col_moneygram_owed, col_moneygram_difference),
+                       cols = c(col_moneygram_owed),
                        gridExpand = TRUE, stack = TRUE
     )
     
     openxlsx::addStyle(wb, 'Sheet1', style = unlock,
                        rows = row_start, cols = col_moneygram_received,
+                       gridExpand = TRUE, stack = TRUE
+    )
+    
+    
+    
+    # Viva --------------------------------------------------------------------
+    
+    store_viva <- all_stores |> 
+      filter(store == !!store) |>
+      select(store_viva)
+    
+    # we start at the store level row , which is the row_start
+    openxlsx::writeData(wb, 'Sheet1', 
+              store_viva, 
+              startRow = row_start, 
+              startCol = col_viva_owed, 
+              colNames = FALSE
+    )
+    
+    # style the 3 cells in the row with borders and the owed cell as yellow
+    
+    openxlsx::addStyle(wb, 'Sheet1',
+                       style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
+                                                     fontSize = font_size,
+                                                     fgFill = 'yellow'
+                       ),
+                       rows = row_start,
+                       cols = col_viva_owed,
                        gridExpand = TRUE, stack = TRUE
     )
     
@@ -251,7 +287,7 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, city_name =
   }
   
   #RENAME SHEET
-  #openxlsx::renameWorksheet(wb, 'Sheet1', city_name)
+  openxlsx::renameWorksheet(wb, 'Sheet1', city_name)
   cli::cli_alert_success("Finished preparing store monitoring for city {.val {city_name}}")
   
 }

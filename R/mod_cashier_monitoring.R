@@ -301,15 +301,25 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
             dta_moneygram_city <- isolate(statements$moneygram) |> 
               filter(store %in% stores_in_city)
             
+            dta_viva_city <- isolate(statements$viva_per_store) |> 
+              select(store, total = Amount) |> 
+              group_by(store) |>
+              summarise(
+                total = sum(total, na.rm = TRUE),
+                .groups = 'drop'
+              ) |> 
+              filter(store %in% stores_in_city)
+            
             # I re-load every time. Object Oriented and by reference
             # and messes up the next iteration if just used the same
             # copyWorkkbbok does not work as intented . WTF?
-            wb <-  openxlsx::loadWorkbook('data-raw/template_report.xlsx')
+            wb <-  openxlsx::loadWorkbook('data-raw/template_report2.xlsx')
             
             prepare_store_monitoring(
               wb,
               dta_cashier_city,
               dta_moneygram_city,
+              dta_viva_city,
               city = city
             )
             
