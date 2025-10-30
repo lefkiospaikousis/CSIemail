@@ -132,12 +132,13 @@ mod_tab_load_server <- function(id){
       
       tagList(
         fluidRow(
-          box(title = "View a store's csi", width = 10,
-              selectInput(ns("store"), "Select a store", 
+          box(title = tags$b("View a store's csi"), width = 10,
+              selectInput(ns("store"), "Select a store", width = '150px',
                           choices = unique(csi()$store_code)
               ),
-              mod_downloadTable_ui(ns("down_csi")),
-              DT::DTOutput(ns("store_csi"))
+              hr(width = '90%'),
+              DT::DTOutput(ns("store_csi")),
+              mod_downloadTable_ui(ns("down_csi"))
           )
         )
       )
@@ -183,13 +184,15 @@ mod_tab_load_server <- function(id){
       
     })
     
+    
     output$store_csi <- DT::renderDT({
       
       store_csi() %>% 
         datatable(
           rownames = FALSE,
           options = list(
-            paging = FALSE,
+            pageLength = 10,
+            paging = TRUE,
             ordering = FALSE
           )
         )

@@ -13,33 +13,20 @@ mod_cachier_groups_emails_ui <- function(id){
     
     fluidRow(
       col_12(
-        #box(width = NULL,
-            div(id = "tbl_buttons",
-                actionButton(ns("btn_add"), "Add", icon("plus"), 
-                             style="color: #fff; background-color: #86af49"),
-                actionButton(ns("btn_edit"), "Edit", icon("edit"), 
-                             style="color: #fff; background-color: #337ab7"),
-                actionButton(ns("btn_delete"), "Delete", icon("trash-alt"), 
-                             class = "btn-danger",
-                             style="color: #fff"),
-                
-                style = "margin-bottom:8px" 
-            ),
-            br(),
-            DTOutput(ns("city_emails"))
-        #)
+        buttons_edit(ns),
+        DTOutput(ns("city_emails"))
       )
     )
   )
 }
-    
+
 #' cachier_groups_emails Server Functions
 #'
 #' @noRd 
 mod_cachier_groups_emails_server <- function(id, conn){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
- 
+    
     
     #city_emails_proxy <- DT::dataTableProxy("city_emails")
     
@@ -254,9 +241,9 @@ mod_cachier_groups_emails_server <- function(id, conn){
     
   })
 }
-    
+
 ## To be copied in the UI
 # mod_cachier_groups_emails_ui("cachier_groups_emails_1")
-    
+
 ## To be copied in the server
 # mod_cachier_groups_emails_server("cachier_groups_emails_1")

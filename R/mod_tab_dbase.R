@@ -12,30 +12,19 @@ mod_tab_dbase_ui <- function(id){
   tagList(
     
     fluidRow(
-      col_6(
-        box(width = NULL,
-            div(id = "tbl_buttons",
-                actionButton(ns("btn_add"), "Add", icon("plus"), 
-                             style="color: #fff; background-color: #86af49"),
-                actionButton(ns("btn_edit"), "Edit", icon("edit"), 
-                             style="color: #fff; background-color: #337ab7"),
-                actionButton(ns("btn_delete"), "Delete", icon("trash-alt"), 
-                             class = "btn-danger",
-                             style="color: #fff"),
-                
-                style = "margin-bottom:8px" 
+      box(title = 'Emails', width = 8,
+          tabsetPanel(
+            tabPanel('Store Emails',
+                     buttons_edit(ns),
+                     DTOutput(ns("tbl_emails"))
             ),
-            br(),
-            DTOutput(ns("tbl_emails"))
-        )
-      ),
-      col_6(
-        box(width = NULL,
-            mod_cachier_groups_emails_ui(ns("cachier_groups_emails_1"))
-        )
+            tabPanel('Cashier Groups Emails',
+                     mod_cachier_groups_emails_ui(ns("cachier_groups_emails_1"))
+            )
+          )
       )
+      
     )
-    
   )
 }
 
@@ -51,7 +40,7 @@ mod_tab_dbase_server <- function(id, conn){
     
     
     res_cashier_group_emails <- mod_cachier_groups_emails_server("cachier_groups_emails_1", conn)
-
+    
     
     tbl_emails_proxy <- DT::dataTableProxy("tbl_emails")
     
