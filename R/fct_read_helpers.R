@@ -234,17 +234,23 @@ process_csi <- function(csi) {
     ) %>% 
     tidyr::fill(store_code) %>% 
     slice(-c(1,2)) %>% 
-    select(-1) %>%
-    # The totals rows will be removed
-    # Note that totals are with commas (,) 
-    # We dont need them, will calculate later. 
-    na.omit() %>% 
+    select(-1)
+  
+  
+  # The totals rows will be removed
+  # Note that totals are with commas (,) 
+  # We dont need them, will calculate later. 
+  csi_clean <- csi_clean[!is.na(csi_clean[['Τιμολόγιο']]), ]
+  
+  csi_clean <- csi_clean %>%
     mutate(
       across(AWB:last_col(), as.double)
-    ) %>% 
-    {.}
+    ) 
   
-  csi_clean[[3]] <- anonymise2(csi_clean[[3]])
+  # make sure it is character first before anonymisig it
+  # fails if we have NA's ?? WTF
+  # csi_clean[[3]] <- as.character(csi_clean[[3]])
+  # csi_clean[[3]] <- anonymise2(csi_clean[[3]])
   
   csi_clean
   
