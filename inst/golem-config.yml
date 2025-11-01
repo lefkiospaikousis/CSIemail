@@ -9,12 +9,17 @@ default:
   users_passphrase: acsrocks
   acs_template: data-raw/ACS CSI template.xlsx
   th_template: data-raw/TH CSI template.xlsx
+  cashier_template: data-raw/template_report2.xlsx
+  moneygram_stores: data-raw/moneygram_mapped_acs_stores.xlsx
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")
 production:
   app_prod: yes
   sender: accounts@acscyprus.com
   smtp_creds: acs
+  path_store_reports: !expr tempdir()
 dev:
   app_prod: no
   golem_wd: !expr here::here()
   sender: lefkiospaik@gmail.com
   smtp_creds: mail_improvast
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")

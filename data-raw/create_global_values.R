@@ -59,8 +59,6 @@ db_tables <- list(
 
 # EXCEL templates -------------------------------------------------------------
 
-#xl_template_store_monitoring <- openxlsx::loadWorkbook('data-raw/template_report.xlsx')
-
 xl_template_ACS_CSI <- openxlsx::loadWorkbook("data-raw/ACS CSI template.xlsx")
 
 xl_template_TH_CSI <- openxlsx::loadWorkbook("data-raw/TH CSI template.xlsx")

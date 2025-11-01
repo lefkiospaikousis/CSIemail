@@ -26,7 +26,7 @@ app_server <- function( input, output, session ) {
   
   observe({
     
-    moneygram_stores <- readxl::read_excel('data-raw/moneygram_mapped_acs_stores.xlsx')
+    moneygram_stores <- readxl::read_excel(get_golem_config('moneygram_stores'))
     
     moneygram_stores <- moneygram_stores |> 
       mutate(`Agent ID` = as.character(`Agent ID`)) |>

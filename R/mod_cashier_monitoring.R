@@ -92,6 +92,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       current_report = 1,
       total_reports = NULL,
       messages = character(0),
+      errors = 0,
       is_running = FALSE,
       is_complete = FALSE
     )
@@ -102,9 +103,16 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       viva_per_store = NULL
     )
     
-    store_emails <- reactive({
+    city_emails <- reactive({
+      
+      if(golem::app_dev()){
+        db_table <- "city_emails2"
+      } else {
+        db_table <- db_tables[["city_emails"]]
+      }
+      
       dbase_csi |> 
-        tbl(db_tables[["city_emails"]]) |> 
+        tbl(db_table) |> 
         collect()
       
     })
@@ -274,8 +282,10 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
           
           # Show preparing message for current report
           report_name <- cities()[progress$current_report]
+          
           # progress$messages <- c(progress$messages, paste(icon('info', style = 'color:blue;font-size:14px'),
           #                                                  "Preparing", report_name, "..."))
+          
           progress$step <- 1
           
         } else if (progress$step == 1) {
@@ -313,7 +323,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
             # I re-load every time. Object Oriented and by reference
             # and messes up the next iteration if just used the same
             # copyWorkkbbok does not work as intented . WTF?
-            wb <-  openxlsx::loadWorkbook('data-raw/template_report2.xlsx')
+            wb <-  openxlsx::loadWorkbook(get_golem_config('cashier_template'))
             
             prepare_store_monitoring(
               wb,
@@ -323,18 +333,40 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
               city = city
             )
             
-            file_name <- glue::glue('SampleData/TAMEIAKH_{city}-{Sys.Date()}.xlsx')
+            file_name <- glue::glue('{get_golem_config("path_store_reports")}/TAMEIAKH_{city}-{Sys.Date()}.xlsx')
             
             openxlsx::saveWorkbook(wb, file_name, overwrite = TRUE)
             
+            # Send Email  
+            #city = 'Nicosia'
+           
+            recipients <- city_emails() |> 
+              filter(city == !!city) |> 
+              pull(email)
+            
+            email_cashier(
+              city = city,
+              recipients = recipients,
+              path_attachement = file_name,
+              mail_credentials = mail_credentials()
+            )
+            
+            
             rm(wb)
             
+            #if(city == 'Nicosia') stop("Some issue here")
+            
             progress$messages <- c(progress$messages, paste(icon('check', style = 'color:green;font-size:14px'), 
-                                                            " Done:", report_name))
+                                                            " Done with ", report_name, " and sent email"))
             
           }, error = function(e) {
-            progress$messages <- c(progress$messages, paste(icon('xmark-check', style = 'color:red;font-size:14px'),
-                                                            " Error in", report_name, ":", e$message))
+            
+            progress$errors <- progress$errors + 1
+            
+            progress$messages <- c(progress$messages, 
+                                   paste(icon('xmark', style = 'color:red;font-size:14px'),
+                                         " Error when preparing ", report_name, ": Error message: ", e$message))
+            
           })
           
           progress$step <- 2
@@ -351,8 +383,19 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
           } else {
             
             # All reports done
-            progress$messages <- c(progress$messages, paste(icon('circle-check', style = 'color:green;font-size:20px'), 
-                                                            " All reports completed successfully!"))
+            
+            if(progress$errors > 0){
+              progress$messages <- c(progress$messages, 
+                                     paste(icon('exclamation-triangle', style = 'color:orange;font-size:20px'), 
+                                           glue::glue(" Completed with {progress$errors} errors. 
+                                                      Please check the messages above.")))
+            } else {
+              
+              progress$messages <- c(progress$messages, 
+                                     paste(icon('circle-check', style = 'color:green;font-size:20px'), 
+                                           " All reports completed successfully!"))
+            } 
+            
             progress$is_complete <- TRUE
             progress$is_running <- FALSE
             
@@ -496,144 +539,3 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
 
 ## To be copied in the server
 # mod_cashier_monitoring_server("cashier_monitoring_1")
-
-
-
-# observeEvent(input$generate_report, {
-#   
-#   req(statements$cashier_per_store)
-#   req(statements$moneygram)
-#   
-#   
-#   # Show modal
-#   showModal(modalDialog(
-#     title = "Generating Reports",
-#     div(
-#       id = "progress_content",
-#       p("Starting report generation..."),
-#       div(id = "progress_messages")
-#     ),
-#     footer = tagList(
-#       shinyjs::hidden(
-#         actionButton(ns("close_modal"), "Close", class = "btn btn-secondary")
-#       )),
-#     easyClose = FALSE,
-#     fade = FALSE
-#   ))
-#   
-#   
-#   # Reset progress
-#   progress$current_report <- 0
-#   progress$messages <- character(0)
-#   progress$is_complete <- FALSE
-#   
-#   showNotification("Generating the Cashier Monitoring Report...", type = "message")
-#   
-#   # Show modal
-#   showModal(modalDialog(
-#     title = "Generating Reports per City",
-#     div(
-#       id = "progress_content",
-#       p("Starting report generation..."),
-#       div(id = "progress_messages")
-#     ),
-#     footer = tagList(
-#       shinyjs::hidden(
-#         actionButton(ns("close_modal"), "Close", class = "btn btn-secondary")
-#       )),
-#     easyClose = FALSE,
-#     fade = FALSE
-#   ))
-#   
-#   # Generate reports sequentially
-#   total_reports <- isolate(progress$total_reports)
-#   
-#   cities <- unique(store_groups()$city)
-#   
-#   
-#   for (i in 1:total_reports) {
-#     
-#     #later::later(
-#     # local({
-#     
-#     report_num <- i
-#     
-#     city = cities[i]
-#     
-#     #function() {
-#     
-#     #for (city in cities) {
-#     
-#     message("Processing city: ", city)
-#     
-#     # Add "preparing" message
-#     progress$messages <- c(isolate(progress$messages), 
-#                            glue::glue("Preparing report for `{city}`..."))
-#     
-#     stores_in_city <- isolate(store_groups()) |> 
-#       filter(city == !!city) |> 
-#       pull(store)
-#     
-#     dta_cashier_city <- isolate(statements$cashier_per_store) |> 
-#       filter(store %in% stores_in_city) |> 
-#       # rename first
-#       select(store, all_of(names_cashier_per_store)) |> 
-#       select(store, courier, total_cash, total_card)
-#     
-#     dta_moneygram_city <- isolate(statements$moneygram) |> 
-#       filter(store %in% stores_in_city)
-#     
-#     # I re-load every time. This is oo and by reference
-#     # and messes up the next iteration if just used the same
-#     # copyWorkkbbok does not work as intented . WTF
-#     wb <-  openxlsx::loadWorkbook('data-raw/template_report.xlsx')
-#     
-#     prepare_store_monitoring(
-#       wb,
-#       dta_cashier_city,
-#       dta_moneygram_city,
-#       city = city
-#     )
-#     
-#     #Sys.sleep(5)
-#     
-#     openxlsx::saveWorkbook(wb, glue::glue('SampleData/test_report_{city}-{Sys.Date()}.xlsx'), overwrite = TRUE)
-#     
-#     rm(wb)
-#     
-#     #}
-#     
-#     # Add "done" message
-#     # progress$messages <- c(isolate(progress$messages),  
-#     #                        glue::glue("Done with the report for `{city}`"))
-#     
-#     # Update progress
-#     progress$current_report <- report_num
-#     
-#     # Check if all reports are complete
-#     if (report_num == total_reports) {
-#       
-#       progress$messages <- c(isolate(progress$messages),
-#                              paste0(icon('circle-check', style = 'color:green;font-size:20px'),
-#                                     " All reports completed successfully!"))
-#       
-#       progress$is_complete <- TRUE
-#       
-#       
-#       # Enable close button
-#       shinyjs::show("close_modal")
-#       
-#       
-#       
-#       # Close modal after showing completion message
-#       # later::later(function() {
-#       #   removeModal()
-#       # }, delay = 2)
-#     }
-#     #}
-#     
-#     #@}), delay = (i - 1) * 2 + 0.5)  # Stagger reports by 2 seconds each, start after 0.5s
-#   }
-#   
-#   
-# })
