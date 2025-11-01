@@ -152,11 +152,9 @@ mod_cachier_groups_emails_server <- function(id, conn){
         error = function(e) {
           
           print(e)
-          showModal(modalDialog(title = "Unable to add/ edit city to the database",
-                                p("Cannot add/ edit this to the database. Something is wrong"),
-                                p("Maybe the connection to the database is lost. Refresh the webage and try again")
-          )
-          )
+          showModal( modal_error_editing_dbase('city') )
+          
+          return(NULL)
         } 
       )
       

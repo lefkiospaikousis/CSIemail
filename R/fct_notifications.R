@@ -43,3 +43,22 @@ error_statement_type <- function(statement_type, session){
                                     paste0("Something went wrong. Not a valid ", statement_type, " file"))
   
 }
+
+
+#' Modal to notify error adding/ editing to dbase
+#' 
+#' @param entity The entity being added/ edited (e.g. city, store...)
+#' @noRd
+modal_error_editing_dbase <- function(entity){
+  
+  showModal(
+    modalDialog(
+      title = paste0("Unable to add/ edit ", entity, " to the database"),
+      p("Cannot add/ edit this to the database. Something is wrong"),
+      p("Maybe the connection to the database is lost. Refresh the webage and try again"),
+      easyClose = TRUE,
+      footer = NULL
+    )
+  )
+  
+}
