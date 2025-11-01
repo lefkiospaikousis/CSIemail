@@ -84,9 +84,9 @@ app_server <- function( input, output, session ) {
   # Database for emails
   path <- get_golem_config("db_path", configuration)
   
-  creds_key <- get_golem_config("smtp_creds", configuration)
+  #creds_key <- get_golem_config("smtp_creds", configuration)
   
-  from <- blastula::creds_key(creds_key)$user
+  #from <- blastula::creds_key(creds_key)$user
   
   dbase_csi <- DBI::dbConnect(RSQLite::SQLite(), path)
   
@@ -131,9 +131,7 @@ app_server <- function( input, output, session ) {
                             trigger = reactive(rv$db_trigger),
                             reactive(rv$csi_type),
                             reactive(rv$csi),
-                            reactive(rv$csi_date),
-                            from = from,
-                            creds_key = creds_key
+                            reactive(rv$csi_date)
   )
   
   

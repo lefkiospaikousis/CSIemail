@@ -2,7 +2,7 @@ default:
   golem_name: CSIemail
   golem_version: 0.0.3
   app_prod: no
-  smtp_creds: gmail
+  smtp_creds: mail_improvast
   sender: lefkiospaik@gmail.com
   db_path: DB/csi_db.db
   db_users: DB/credentials.sqlite
@@ -17,4 +17,4 @@ dev:
   app_prod: no
   golem_wd: !expr here::here()
   sender: lefkiospaik@gmail.com
-  smtp_creds: gmail
+  smtp_creds: mail_improvast

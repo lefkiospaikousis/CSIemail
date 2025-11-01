@@ -33,10 +33,8 @@ mod_tab_send_email_ui <- function(id){
 
 #' tab_send_email Server Functions
 #'
-#' @param from String length 1. The senders email address
-#' @param creds_key String length 1. The ID value of the key (in the system key-value store)
 #' @noRd 
-mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date, from, creds_key){
+mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -308,10 +306,10 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                     blastula::smtp_send(
                       email   = msg,
                       to      = address, 
-                      from    = from,
+                      from    = mail_credentials()$user,
                       # subject = paste0(csi_type(), store_code," - Date: ", csi_date_text()),
                       subject = glue::glue("{gsub('ACS ', '', csi_type())} - {store} - Date:{csi_date_text()}"),
-                      credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
+                      credentials = mail_credentials() # blastula::creds_file("gmail_creds")
                     )
                   }
                 )
