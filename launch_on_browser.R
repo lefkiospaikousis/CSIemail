@@ -17,12 +17,11 @@ try({
   x <- system("ipconfig", intern=TRUE)
   z <- x[grep("IPv4", x)]
   ip <- gsub(".*? ([[:digit:]])", "\\1", z)
-  print(paste0("the Shiny Web application runs on: http://", ip, ":3845/"))
+  print(paste0("the Shiny Web application runs on: http://", ip, ":3846/"))
   
   # Run it but don;t launch the browser. Whenever I type the address on  the browser
   # I will see the app
-  runApp(folder_address, launch.browser=FALSE, port = 3845
-         #, host = getOption("shiny.host", "127.0.0.1")
+  runApp(folder_address, launch.browser=FALSE, port = 3846         #, host = getOption("shiny.host", "127.0.0.1")
          , host = ip
          
   )
