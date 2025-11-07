@@ -55,7 +55,7 @@ app_server <- function( input, output, session ) {
     check_credentials = shinymanager::check_credentials(
       
       db = CSIemail:::get_golem_config("db_users", configuration),
-      passphrase = get_golem_config("users_passphrase", configuration)
+      passphrase = CSIemail:::get_golem_config("users_passphrase", configuration)
       
     ),
     keep_token = TRUE
@@ -82,11 +82,7 @@ app_server <- function( input, output, session ) {
   # RSQLite connection ------------------------------------------------------
   
   # Database for emails
-  path <- get_golem_config("db_path", configuration)
-  
-  #creds_key <- get_golem_config("smtp_creds", configuration)
-  
-  #from <- blastula::creds_key(creds_key)$user
+  path <- CSIemail:::get_golem_config("db_path", configuration)
   
   dbase_csi <- DBI::dbConnect(RSQLite::SQLite(), path)
   
