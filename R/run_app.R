@@ -16,16 +16,16 @@ run_app <- function(
 ) {
   with_golem_options(
     app = shinyApp(
-      ui = app_ui,
-      # ui = shinymanager::secure_app(app_ui, 
-      #                               enable_admin = TRUE,
-      #                               tags_top = tags$div(
-      #   tags$h4("Cash Sales Invoice - Emails", style = "align:center"),
-      #   tags$img(
-      #     src =  "www/logo.png"  #"https://www.r-project.org/logo/Rlogo.png"
-      #     , width = 100
-      #   )
-      # )),
+      #ui = app_ui,
+      ui = shinymanager::secure_app(app_ui,
+                                    enable_admin = TRUE,
+                                    tags_top = tags$div(
+        tags$h4("Cash Sales Invoice - Emails", style = "align:center"),
+        tags$img(
+          src =  "www/logo.png"  #"https://www.r-project.org/logo/Rlogo.png"
+          , width = 100
+        )
+      )),
       server = app_server,
       onStart = onStart,
       options = options, 
