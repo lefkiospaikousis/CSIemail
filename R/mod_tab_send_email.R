@@ -33,10 +33,8 @@ mod_tab_send_email_ui <- function(id){
 
 #' tab_send_email Server Functions
 #'
-#' @param from String length 1. The senders email address
-#' @param creds_key String length 1. The ID value of the key (in the system key-value store)
 #' @noRd 
-mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date, from, creds_key){
+mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -55,7 +53,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
       trigger()
       
       conn %>% 
-        tbl("emails") %>% 
+        tbl(db_tables[['store_emails']]) %>% 
         collect() %>% 
         tidyr::nest(email = email) %>% 
         mutate(email = map(email, ~pull(., email)))
@@ -169,19 +167,19 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           selection = "multiple",
           columns = list(
             
-            send_success = reactable::colDef(name = "Email is sent?", 
+            send_success = reactable::colDef(name = "Email is sent?", , filterable = TRUE,
                                              cell = function(value) {
                                                # Render as an X mark or check mark
                                                if (isFALSE(value)) "\u274c No" else "\u2714\ufe0f Yes"
                                              }),
-            email        = reactable::colDef(name = "Email", 
+            email        = reactable::colDef(name = "Email", , filterable = TRUE,
                                              cell = function(value){
                                                
                                                if(is.null(value)) "" else value
                                              }),
-            store_name   = reactable::colDef(name = "Store name"),
+            store_name   = reactable::colDef(name = "Store name", filterable = TRUE),
             
-            store_code   = reactable::colDef(name = "Store code")
+            store_code   = reactable::colDef(name = "Store code", filterable = TRUE)
           )
         )
     })
@@ -308,10 +306,10 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
                     blastula::smtp_send(
                       email   = msg,
                       to      = address, 
-                      from    = from,
+                      from    = mail_credentials()$user,
                       # subject = paste0(csi_type(), store_code," - Date: ", csi_date_text()),
                       subject = glue::glue("{gsub('ACS ', '', csi_type())} - {store} - Date:{csi_date_text()}"),
-                      credentials = blastula::creds_key(creds_key) # blastula::creds_file("gmail_creds")
+                      credentials = mail_credentials() # blastula::creds_file("gmail_creds")
                     )
                   }
                 )
@@ -368,7 +366,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
           } else {
             
             msg <- "NO emails were send! Please check the email addresses"
-            message_email_failure(msg)
+            message_failure(msg)
             print(msg) # log the issue
             rv$send_ok <- FALSE
             waiter::waiter_hide()
@@ -379,7 +377,7 @@ mod_tab_send_email_server <- function(id, conn, trigger, csi_type, csi, csi_date
         error = function(e) {
           
           msg <- "There was a problem and no emails were send"
-          message_email_failure(msg)
+          message_failure(msg)
           print(msg) # log the issue
           waiter::waiter_hide()
           

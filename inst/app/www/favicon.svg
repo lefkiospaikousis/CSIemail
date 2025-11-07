@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .bg { fill: #2563eb; }
+      .invoice { fill: #ffffff; }
+      .dollar { fill: #fbbf24; }
+      .envelope { fill: #10b981; }
+    </style>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" class="bg"/>
+  
+  <!-- Invoice/Document -->
+  <rect x="8" y="7" width="12" height="15" rx="1" class="invoice"/>
+  <line x1="10" y1="10" x2="18" y2="10" stroke="#2563eb" stroke-width="0.8"/>
+  <line x1="10" y1="13" x2="18" y2="13" stroke="#2563eb" stroke-width="0.8"/>
+  <line x1="10" y1="16" x2="15" y2="16" stroke="#2563eb" stroke-width="0.8"/>
+  
+  <!-- Dollar sign -->
+  <text x="14" y="20" font-family="Arial, sans-serif" font-size="8" font-weight="bold" class="dollar">$</text>
+  
+  <!-- Email envelope (bottom right corner) -->
+  <g transform="translate(18, 20)">
+    <rect x="0" y="0" width="10" height="7" rx="0.5" class="envelope"/>
+    <path d="M 0 0 L 5 4 L 10 0" fill="none" stroke="#ffffff" stroke-width="0.8"/>
+  </g>
+</svg>

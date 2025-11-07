@@ -26,8 +26,9 @@ app_ui <- function(request) {
                     menuItem("1. Load file", tabName = "load", icon = icon("file-upload")),
                     menuItem("2. Send emails", tabName = "email", icon = icon("envelope")),
                     hr(style = "width:80%"),
-                    menuItem("Store Email List", tabName = "dbase", icon = icon("database")),
-                    menuItemOutput("managerUI"),
+                    menuItem("Cashier Monitoring", tabName = "monitoring", icon = icon("table")),
+                    menuItem("Email List", tabName = "dbase", icon = icon("database")),
+                    #menuItemOutput("managerUI"),
                     tags$hr(style = "border-color: white; width:80%"),
                     p(paste0("Version: ", golem::get_golem_version()), style = "margin-left:25px"),
                     div(
@@ -51,8 +52,12 @@ app_ui <- function(request) {
                   mod_tab_send_email_ui("tab_email_ui_1")
                   
           ),
+          tabItem(tabName = "monitoring",
+                  mod_cashier_monitoring_ui("cashier_monitoring_1")
+                  
+          ),
           tabItem(tabName = "dbase",
-                  h3("The store email list"),
+                  #h3("The store email list"),
                   mod_tab_dbase_ui("tab_dbase_ui_1")
                   
           )

@@ -10,16 +10,29 @@
 mod_tab_load_ui <- function(id){
   ns <- NS(id)
   tagList(
-    #h3("Load the a Statement"),
-    #tags$hr(style="border-color: black;"),
     fluidRow(
-      box(title = h3("Load a Statement", style="color:#B88C4A"),
-          radioButtons(ns("csi_type"), "Type of statement", choices = c("ACS CSI", "Ticket Hour Sales"), inline = TRUE),
-          fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
-                    accept = c(".xlsx", ".xls", ".csv"))
+      box(
+        title = tags$b("Load a Statement", style="color:#DD0827"),
+        radioButtons(ns("csi_type"), "Type of statement", choices = c("ACS CSI", "Ticket Hour Sales"), inline = TRUE),
+        fileInput(ns("file_csi"), "Load an .xlsx/.xls file", buttonLabel = "Load file",
+                  accept = c(".xlsx", ".xls", ".csv"))
       )
     ),
-    uiOutput(ns("store_csi_UI"))
+    fluidRow(
+      shinyjs::hidden(
+        div(id = ns('box_stores'),
+            box(
+              title = tags$b("View a store's csi"), width = 10,
+              selectInput(
+                ns("store"), "Select a store", width = '150px', choices = NULL
+              ),
+              hr(width = '90%'),
+              DT::DTOutput(ns("store_csi")),
+              mod_downloadTable_ui(ns("down_csi"))
+            )
+        )
+      )
+    )
     
   )
 }
@@ -76,9 +89,9 @@ mod_tab_load_server <- function(id){
       dta <- tryCatch(
         
         switch (csi_type,
-                       "ACS CSI" = read_acs_csi(file$datapath),
-                       "Ticket Hour Sales" = read_ticket_hour(file$datapath),
-                       stop("Have you added a new type malaka?", .call = FALSE)
+                "ACS CSI" = read_acs_csi(file$datapath),
+                "Ticket Hour Sales" = read_ticket_hour(file$datapath),
+                stop("Have you added a new type malaka?", .call = FALSE)
         ),
         
         error = function(e){
@@ -88,7 +101,7 @@ mod_tab_load_server <- function(id){
         }
         
       )
- 
+      
       
       # 
       if(is.null(dta)){
@@ -126,29 +139,21 @@ mod_tab_load_server <- function(id){
     })
     
     
-    output$store_csi_UI <- renderUI({
-      
-      req(csi())
-      
-      tagList(
-        fluidRow(
-          box(title = "View a store's csi", width = 10,
-              selectInput(ns("store"), "Select a store", 
-                          choices = unique(csi()$store_code)
-              ),
-              mod_downloadTable_ui(ns("down_csi")),
-              DT::DTOutput(ns("store_csi"))
-          )
-        )
-      )
-      
-    })
-    
     # Save to rv for return
     observeEvent(csi(), {
       
       rv$csi    <- csi()
       rv$stores <- unique(csi()$store_code)
+      
+      updateSelectInput(
+        session,
+        "store",
+        choices = rv$stores,
+        selected = rv$stores[1]
+      )
+      
+      shinyjs::show('box_stores')
+      
       
     })
     
@@ -178,10 +183,11 @@ mod_tab_load_server <- function(id){
             select(., any_of(col_names_ticket))
           }
         }
-        
+      
       
       
     })
+    
     
     output$store_csi <- DT::renderDT({
       
@@ -189,7 +195,8 @@ mod_tab_load_server <- function(id){
         datatable(
           rownames = FALSE,
           options = list(
-            paging = FALSE,
+            pageLength = 10,
+            paging = TRUE,
             ordering = FALSE
           )
         )

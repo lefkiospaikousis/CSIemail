@@ -16,7 +16,7 @@ read_ticket_hour <- function(path){
   } else {
     
     out <- 
-    temp$result %>% 
+      temp$result %>% 
       select(1:15) %>% 
       setNames(unname(col_names_ticket)) %>% 
       select(-EMPTY, -star, -contact, -value, -ticket_id, -store_name, -items) %>% 
@@ -41,7 +41,6 @@ read_ticket_hour <- function(path){
 #' @param path A path to a .xlsx or .xls file
 read_acs_csi <- function(path){
   
-  
   stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
   
   temp <- safe_readXL(path)
@@ -60,6 +59,134 @@ read_acs_csi <- function(path){
       mutate(AWB = as.character(AWB))
     
   } 
+  
+}
+
+
+read_monitoring_statement <- function(path){
+  
+  stopifnot(tools::file_ext(path) %in% c("xls", "xlsx"))
+  
+  # Expect the first column courier, to be character. The rest are numeric
+  
+  temp <- safe_readXL(path)
+  
+  if(is.null(temp$result)) {
+    
+    return(NULL) 
+    
+  } else {
+    
+    # CLEAN
+    # Identify the rows that contain the store names
+    # Create a new column 'store' to hold the store names, and extract from the courier column
+    # Fill down the store names to the rows below
+    # Remove the rows that contain only store names
+    # Remove the total rows for each store
+    
+    # Clean
+    
+    dta <- temp$result
+    
+    names(dta)[1] <- 'courier'
+    
+    store_unicode = '\u039A\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1'
+    
+    needed_columns <- names_cashier_per_store[c("courier", "total_cash")]
+    
+    if(!all(needed_columns %in% names(dta))){
+      
+      cli::cli_abort(
+        "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
+      
+    }
+    
+    
+    dta %>% 
+      # Remove the TOTALS per store
+      mutate(
+        store = ifelse(
+          grepl(paste0("^", store_unicode), courier), 
+          gsub(paste0("^", store_unicode, ": "), "", courier),
+          NA_character_),
+        .before = 1
+      ) |> 
+      tidyr::fill(store, .direction = "down") |> 
+      # remove the SHOP rows
+      filter(! grepl(paste0("^", store_unicode), courier)) |> 
+      # remove the totals per store I will calculate them later
+      filter(!is.na(courier))
+    
+  } 
+  
+  
+}
+
+
+read_moneygram_statement <- function(path) {
+  
+  dta <- readxl::read_excel(path, col_names = FALSE) 
+  
+  names(dta) <- paste0('col_', 1:ncol(dta))
+  
+  dta_cleaned <- dta |> 
+    filter(grepl("Agent Name|Agent ID|TOTAL, EUR", col_1)) |>
+    mutate(
+      col_2 = if_else(grepl("TOTAL, EUR", col_1), col_8, col_2)
+    ) |>
+    select(col_1, col_2) |> 
+    mutate(
+      group = rep(1:(n()/3), each = 3)  # Create groups of 3
+    ) %>%
+    group_by(group) %>%
+    summarise(
+      agent_id = col_2[1],
+      agent_name = col_2[2],
+      total = col_2[3]
+    ) %>%
+    select(-group) 
+  
+  dta_cleaned |> 
+    # handle negative values
+    mutate(
+      total = case_when(
+        grepl("\\(", total) ~ -as.numeric(gsub("[^0-9.]", "", total)),
+        TRUE ~ as.numeric(gsub("[^0-9.-]", "", total))
+      )
+    ) 
+  
+}
+
+
+read_viva_statement <- function(path){
+  
+  #path <- 'SampleData/_VIVA_24-10-2025.csv'
+  stopifnot(tools::file_ext(path) %in% c("csv"))
+  
+  temp <- safe_readCSV(path)
+  
+  if(is.null(temp$result)) {
+    
+    return(NULL) 
+    
+  } else {
+    
+    dta <- temp$result
+    
+    needed_columns <- c('Transaction Type', 'ACS Account Code/Store', 'Amount')
+    
+    if(!all(needed_columns %in% names(dta))){
+      
+      cli::cli_abort(
+        "The uploaded file does not have columns {paste(needed_columns, collpase = ', ')}")
+      
+    }
+    
+    dta |> 
+      select(all_of(needed_columns)) 
+    
+  } 
+  
   
 }
 
@@ -107,18 +234,24 @@ process_csi <- function(csi) {
     ) %>% 
     tidyr::fill(store_code) %>% 
     slice(-c(1,2)) %>% 
-    select(-1) %>%
-    # The totals rows will be removed
-    # Note that totals are with commas (,) 
-    # We dont need them, will calculate later. 
-    na.omit() %>% 
+    select(-1)
+  
+  
+  # The totals rows will be removed
+  # Note that totals are with commas (,) 
+  # We dont need them, will calculate later. 
+  csi_clean <- csi_clean[!is.na(csi_clean[['Τιμολόγιο']]), ]
+  
+  csi_clean <- csi_clean %>%
     mutate(
       across(AWB:last_col(), as.double)
-    ) %>% 
-    {.}
+    ) 
   
-  csi_clean[[3]] <- anonymise2(csi_clean[[3]])
-            
+  # make sure it is character first before anonymisig it
+  # fails if we have NA's ?? WTF
+  # csi_clean[[3]] <- as.character(csi_clean[[3]])
+  # csi_clean[[3]] <- anonymise2(csi_clean[[3]])
+  
   csi_clean
   
 }
@@ -169,8 +302,8 @@ get_csi_date <- function(csi, csi_type){
                    stringr::str_extract("(?<=: ).+"),
                  
                  "Ticket Hour Sales" = c(from = min(csi$date, na.rm = TRUE),
-                                   to = max(csi$date, na.rm = TRUE)
-                                   ),
+                                         to = max(csi$date, na.rm = TRUE)
+                 ),
                  
                  stop("Invalid CSI type")
   )

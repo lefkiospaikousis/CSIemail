@@ -2,19 +2,24 @@ default:
   golem_name: CSIemail
   golem_version: 0.0.3
   app_prod: no
-  smtp_creds: gmail
+  smtp_creds: mail_improvast
   sender: lefkiospaik@gmail.com
   db_path: DB/csi_db.db
   db_users: DB/credentials.sqlite
   users_passphrase: acsrocks
   acs_template: data-raw/ACS CSI template.xlsx
   th_template: data-raw/TH CSI template.xlsx
+  cashier_template: data-raw/template_report2.xlsx
+  moneygram_stores: data-raw/moneygram_mapped_acs_stores.xlsx
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")
 production:
   app_prod: yes
   sender: accounts@acscyprus.com
   smtp_creds: acs
+  path_store_reports: !expr tempdir()
 dev:
   app_prod: no
-  golem_wd: C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail
+  golem_wd: !expr here::here()
   sender: lefkiospaik@gmail.com
-  smtp_creds: gmail
+  smtp_creds: mail_improvast
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")

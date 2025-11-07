@@ -19,7 +19,21 @@ app_server <- function( input, output, session ) {
     cat("Doing application cleanup\n")
     cat("-----\n Removing connections\n")
     
-    DBI::dbDisconnect(email_db)
+    DBI::dbDisconnect(dbase_csi)
+    
+  })
+  
+  
+  observe({
+    
+    moneygram_stores <- readxl::read_excel(get_golem_config('moneygram_stores'))
+    
+    moneygram_stores <- moneygram_stores |> 
+      mutate(`Agent ID` = as.character(`Agent ID`)) |>
+      select(agent_id = 'Agent ID', store = `Acs store code`)
+    
+    session$userData$moneygram_stores <- moneygram_stores
+    
     
   })
   
@@ -41,7 +55,7 @@ app_server <- function( input, output, session ) {
     check_credentials = shinymanager::check_credentials(
       
       db = CSIemail:::get_golem_config("db_users", configuration),
-      passphrase = get_golem_config("users_passphrase", configuration)
+      passphrase = CSIemail:::get_golem_config("users_passphrase", configuration)
       
     ),
     keep_token = TRUE
@@ -68,13 +82,9 @@ app_server <- function( input, output, session ) {
   # RSQLite connection ------------------------------------------------------
   
   # Database for emails
-  path <- get_golem_config("db_path", configuration)
+  path <- CSIemail:::get_golem_config("db_path", configuration)
   
-  creds_key <- get_golem_config("smtp_creds", configuration)
-  
-  from <- blastula::creds_key(creds_key)$user
-  
-  email_db <- DBI::dbConnect(RSQLite::SQLite(), path)
+  dbase_csi <- DBI::dbConnect(RSQLite::SQLite(), path)
   
   
   # User IP Information -----------------------------------------------------
@@ -113,22 +123,20 @@ app_server <- function( input, output, session ) {
   # 2. Send emails
   
   mod_tab_send_email_server("tab_email_ui_1",
-                            conn = email_db,
+                            conn = dbase_csi,
                             trigger = reactive(rv$db_trigger),
                             reactive(rv$csi_type),
                             reactive(rv$csi),
-                            reactive(rv$csi_date),
-                            from = from,
-                            creds_key = creds_key
+                            reactive(rv$csi_date)
   )
   
   
   
   # 3. Email dbase
   
-  dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = email_db)
+  res_tab_dbase <- mod_tab_dbase_server("tab_dbase_ui_1", conn = dbase_csi)
   
-  observeEvent(dbase$db_trigger, {
+  observeEvent(res_tab_dbase$db_trigger, {
     
     rv$db_trigger   <- isolate(rv$db_trigger) + 1
     
@@ -138,5 +146,11 @@ app_server <- function( input, output, session ) {
     
     reactiveValuesToList(rv)
   })
+  
+  
+  # 4. Cashier Monitoring
+  
+  mod_cashier_monitoring_server("cashier_monitoring_1", dbase_csi)
+  
   
 }

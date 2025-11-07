@@ -16,12 +16,13 @@ run_app <- function(
 ) {
   with_golem_options(
     app = shinyApp(
-      ui = shinymanager::secure_app(app_ui, 
+      #ui = app_ui,
+      ui = shinymanager::secure_app(app_ui,
                                     enable_admin = TRUE,
                                     tags_top = tags$div(
         tags$h4("Cash Sales Invoice - Emails", style = "align:center"),
         tags$img(
-          src =  "www/ACS_logo1.jpg"  #"https://www.r-project.org/logo/Rlogo.png"
+          src =  "www/logo.png"  #"https://www.r-project.org/logo/Rlogo.png"
           , width = 100
         )
       )),

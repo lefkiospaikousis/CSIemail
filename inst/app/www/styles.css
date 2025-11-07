@@ -1,0 +1,42 @@
+ 
+.btn-submit{
+
+  width: 60%;
+  background-color: #5cb85c;
+  color: #fff;
+  margin-left; 120px
+}
+
+.btn-submit:hover {
+  background-color: #3e8e41;
+  color: #fff;
+}
+
+.btn-submit:focus{background-color:#04AA6D;}
+
+
+ 
+.btn-generate{
+
+  width: 60%;
+  background-color: #2563eb;
+  color: #fff;
+  margin-left; 120px
+}
+
+.btn-generate:hover {
+  background-color: #1d4ed8;
+  color: #fff;
+}
+
+.btn-generate:focus{background-color:#1e40af;}
+
+
+
+.downExcel{
+  background-color:transparent;
+  color: #337ab7;
+  border:0px;
+  outline:0px;
+  font-size:12px;
+} 
