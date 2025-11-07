@@ -3,14 +3,16 @@
 #' The Windows task scheduler calls the 'RScript.exe' and the later sources this file
 #' @noRd
 # Set up error log ------------------------------------------------------------
-error_log <- file("C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail/error_log.Rout", open="wt")
+#error_log <- file("C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail/error_log.Rout", open="wt")
+error_log <- file("C:/Users/administrator.ACSCY/Documents/CSIemail/error_log.Rout", open="wt")
 sink(error_log, type="message")
 
 try({
   print(Sys.time())
   
   library(shiny)
-  folder_address = 'C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail'
+  #folder_address = 'C:/Users/pcuser/OneDrive/IMPROVAST/ACS/CSIemail'
+  folder_address = 'C:/Users/administrator.ACSCY/Documents/CSIemail'
   
   x <- system("ipconfig", intern=TRUE)
   z <- x[grep("IPv4", x)]
