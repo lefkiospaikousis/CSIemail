@@ -36,7 +36,7 @@ email_cashier <- function(city, recipients, path_attachement, mail_credentials) 
   email %>%
     blastula::smtp_send(
       from = mail_credentials$user,
-      to = recipients,
+      to = recipients |> stringr::str_trim(),
       subject = email_subject,
       credentials = mail_credentials
     )
