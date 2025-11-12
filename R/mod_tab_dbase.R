@@ -20,6 +20,9 @@ mod_tab_dbase_ui <- function(id){
             ),
             tabPanel('Cashier Groups Emails',
                      mod_cachier_groups_emails_ui(ns("cachier_groups_emails_1"))
+            ),
+            tabPanel('Cashier Groups',
+                     mod_cashier_groups_ui(ns("cachier_groups_1"))
             )
           )
       )
@@ -37,7 +40,8 @@ mod_tab_dbase_server <- function(id, conn){
     
     ns <- session$ns
     
-    res_cashier_group_emails <- mod_cachier_groups_emails_server("cachier_groups_emails_1", conn)
+    res_cashier_groups_emails <- mod_cachier_groups_emails_server("cachier_groups_emails_1", conn)
+    res_cashier_groups <- mod_cashier_groups_server("cachier_groups_1", conn)
     
     tbl_emails_proxy <- DT::dataTableProxy("tbl_emails")
     

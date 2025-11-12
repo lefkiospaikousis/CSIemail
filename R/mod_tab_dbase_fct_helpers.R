@@ -79,6 +79,37 @@ entry_form_city <- function(session, edit = FALSE, city = NULL) {
   
 }
 
+#' Entry form to add a new city & store
+#' a modalDialog. Needs to be a function to run properly (lazy loading?)
+#' @noRd
+entry_form_cashier_group <- function(session, edit = FALSE, city = NULL) {
+  
+  ns <- session$ns
+  
+  if(edit && is.null(city)) {
+    stop("No city given")
+  }
+  
+  
+  mode <- if(edit) {"Edit"} else {"Add"}
+  title <- glue("{mode} a city")
+  
+  modalDialog(
+    tagList(
+      h3(title),
+      textInput(ns("city"), "City Name"),
+      textInput(ns("store"), "Store")
+    ),
+    tagList(
+      actionButton(ns("submit"), "Submit", class = "btn-success"),
+      modalButton("Cancel")
+    )
+    
+    , footer = NULL
+  )
+  
+}
+
 
 #' Modal dialog for delete verification
 #' 
@@ -141,6 +172,43 @@ verify_delete_city <- function(session, city) {
       )
     ),
     title = "Delete a city's email",
+    size = "m",
+    footer = list(
+      modalButton("Cancel"),
+      actionButton(
+        ns("submit_delete"),"Delete", class = "btn-danger",
+        style="color: #fff;"
+      )
+    )
+  )
+  
+}
+
+
+#' Modal dialog for delete verification
+#' 
+#' @param session The current session object
+#' @param city A one-row dataframe of the store
+#' @noRd
+verify_delete_store <- function(session, city) {
+  
+  stopifnot(nrow(city) == 1)
+  ns <- session$ns
+  
+  modalDialog(
+    div(
+      style = "padding: 10px;",
+      class = "text-center",
+      h4(
+        style = "line-height: 1.00;",
+        paste0(
+          'Are you sure you want to delete the store "', 
+          city$store, '" from city "',
+          city$city, '"?'
+        )
+      )
+    ),
+    title = "Delete a city's store",
     size = "m",
     footer = list(
       modalButton("Cancel"),

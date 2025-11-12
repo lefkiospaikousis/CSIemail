@@ -1,4 +1,4 @@
-#' cachier_groups_emails UI Function
+#' cashier_groups UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,65 +7,61 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_cachier_groups_emails_ui <- function(id){
+mod_cashier_groups_ui <- function(id){
   ns <- NS(id)
   tagList(
-    
     fluidRow(
       col_12(
         buttons_edit(ns),
-        DTOutput(ns("city_emails"))
+        DTOutput(ns("cashier_groups"))
       )
     )
   )
 }
-
-#' cachier_groups_emails Server Functions
+    
+#' cashier_groups Server Functions
 #'
 #' @noRd 
-mod_cachier_groups_emails_server <- function(id, conn){
+mod_cashier_groups_server <- function(id, conn){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    
+ 
     rv <- rv(
       db_trigger = 0,
       city_to_edit = NULL
     )
     
-    email_regex <- "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$"
-    email_regex <- "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
-    
-    city_emails <- reactive({
+    cashier_groups <- reactive({
       
       rv$db_trigger
       
       conn %>% 
-        tbl(db_tables[['city_emails']]) %>% 
+        tbl(db_tables[['cashier_groups']]) %>% 
         collect()
     })
     
     
-    output$city_emails <- renderDT({
+    output$cashier_groups <- renderDT({
       
-      city_emails() |> 
+      cashier_groups() |> 
         select(-uuid) |> 
         datatable(
           options = list()
           , rownames = FALSE
-          , colnames = c("City" = "city", "Email" = "email")
+          , colnames = c("City" = "city", "Store" = "store")
           , selection = "single"
-          , caption = "The ACS Head stores and associated email(s)"
+          , caption = "The ACS cashier groups"
           , filter = "top"
         )
     })
     
     
-    ids_selected <- reactive(input$city_emails_rows_selected)
+    ids_selected <- reactive(input$cashier_groups_rows_selected)
     
     
     observeEvent(input$btn_add, {
       
-      showModal(entry_form_city(session))
+      showModal(entry_form_cashier_group(session))
       
     })
     
@@ -80,14 +76,14 @@ mod_cachier_groups_emails_server <- function(id, conn){
       } else {
         
         # Edit the city
-        city <- as.list(city_emails()[ids_selected(), ])
+        city <- as.list(cashier_groups()[ids_selected(), ])
         
         showModal(
-          entry_form_city(session, edit = TRUE, city = city)
+          entry_form_cashier_group(session, edit = TRUE, city = city)
         )
         
         updateTextInput(session, "city", value = city$city)
-        updateTextInput(session, "email", value = city$email)
+        updateTextInput(session, "store", value = city$store)
         
         rv$city_to_edit = city
       }
@@ -103,8 +99,8 @@ mod_cachier_groups_emails_server <- function(id, conn){
           
           if(is.null(rv$city_to_edit)) {
             
-            # new city/ email
-            append_data(conn, db_tables[["city_emails"]], form_data())
+            # new city/ store
+            append_data(conn, db_tables[["cashier_groups"]], form_data())
             
             showToast("success",
                       paste0("City: ",  form_data()$city, " was added in the database"),
@@ -116,7 +112,7 @@ mod_cachier_groups_emails_server <- function(id, conn){
             # edit city
             DBI::dbExecute(
               conn,
-              "UPDATE city_emails SET city=$city, email=$email WHERE uuid=$uuid",
+              "UPDATE cashier_groups SET city=$city, store=$store WHERE uuid=$uuid",
               params = as.list(form_data())
             )
             
@@ -147,15 +143,6 @@ mod_cachier_groups_emails_server <- function(id, conn){
       
     })
     
-    observeEvent(input$email, {
-      
-      if(!stringr::str_detect(input$email, email_regex)) {
-        shinyFeedback::showFeedbackDanger(input$email, text = "Invalid email address")
-      }
-      
-      
-    })
-    
     form_data <- reactive({
       
       city <- isolate(rv$city_to_edit)
@@ -163,7 +150,7 @@ mod_cachier_groups_emails_server <- function(id, conn){
       data.frame(
         uuid   = if(!is.null(city)) {city$uuid} else {uuid::UUIDgenerate()},
         city  = input$city,
-        email = input$email, 
+        store = input$store, 
         stringsAsFactors = FALSE)
       
     })
@@ -180,9 +167,9 @@ mod_cachier_groups_emails_server <- function(id, conn){
         
       } else {
         
-        city <- city_emails()[ids_selected(), ]
+        city <- cashier_groups()[ids_selected(), ]
         
-        showModal(verify_delete_city(session, city))
+        showModal(verify_delete_store(session, city))
         
       }
       
@@ -192,18 +179,19 @@ mod_cachier_groups_emails_server <- function(id, conn){
       
       removeModal()
       
-      uids <- city_emails()[ids_selected(), ]$uuid
-      city <- city_emails()[ids_selected(), ]$city
+      uids <- cashier_groups()[ids_selected(), ]$uuid
+      city <- cashier_groups()[ids_selected(), ]$city
+      store <- cashier_groups()[ids_selected(), ]$store
       
       tryCatch(
         
         expr = {
-          delete_data(conn, db_tables[["city_emails"]], "uuid", uids)
+          delete_data(conn, db_tables[["cashier_groups"]], "uuid", uids)
           
           rv$db_trigger <- isolate(rv$db_trigger) + 1
           
           showToast("success",
-                    paste0("City: ",  city, " was deleted from the Database"),
+                    glue::glue("Store: {store} was delete from City: {city}" ),
                     .options = list(positionClass = "toast-top-center")
           )
         },
@@ -222,13 +210,11 @@ mod_cachier_groups_emails_server <- function(id, conn){
     })
     
     return(rv)
-    
-    
   })
 }
-
+    
 ## To be copied in the UI
-# mod_cachier_groups_emails_ui("cachier_groups_emails_1")
-
+# mod_cashier_groups_ui("cashier_groups_1")
+    
 ## To be copied in the server
-# mod_cachier_groups_emails_server("cachier_groups_emails_1")
+# mod_cashier_groups_server("cashier_groups_1")
