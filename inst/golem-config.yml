@@ -9,7 +9,7 @@ default:
   users_passphrase: acsrocks
   acs_template: data-raw/ACS CSI template.xlsx
   th_template: data-raw/TH CSI template.xlsx
-  cashier_template: data-raw/template_report2.xlsx
+  cashier_template: data-raw/template_report.xlsx
   moneygram_stores: data-raw/moneygram_mapped_acs_stores.xlsx
   path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")
 production:
