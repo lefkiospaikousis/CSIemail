@@ -17,7 +17,11 @@ mod_cashier_monitoring_ui <- function(id){
       $('#progress_content').html(content);
     });
   ")),
-    
+    tags$script(HTML("
+    Shiny.addCustomMessageHandler('updateProgressEmail', function(content) {
+      $('#email_progress_content').html(content);
+    });
+  ")),
     fluidRow(
       column(3,
              
@@ -62,8 +66,7 @@ mod_cashier_monitoring_ui <- function(id){
                width = 12,
                title = tags$b("Generate Cashier Monitoring Templates"),
                "Once Cashier report and  Moneygram statements are loaded, click the button below to 
-               generate the Excel templates per city and email them directly
-               to the city cashiers",
+               generate the Excel templates per city and email them email them to the city cashiers",
                br(),
                br(),
                shinyjs::disabled(
@@ -97,6 +100,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       is_complete = FALSE
     )
     
+    files_to_send <- reactiveVal(NULL)
+    
     statements <- rv(
       cashier_per_store = NULL,
       moneygram = NULL,
@@ -126,6 +131,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     cities <- reactive({
       unique(store_groups()$city)
     })
+    
     
     observeEvent(store_groups(), {
       
@@ -245,7 +251,9 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     observe({
       
       if (length(progress$messages) > 0) {
-        message_html <- paste0("<p>", paste(progress$messages, collapse = "</p><p>"), "</p>")
+        
+        #message_html <- paste0("<p>", paste(progress$messages, collapse = "</p><p>"), "</p>")
+        message_html <- paste0("<p>", paste(progress$messages, collapse = " | "), "</p>")
         
         # Add progress bar
         progress_percent <- round(((progress$current_report - 1) / progress$total_reports) * 100)
@@ -260,7 +268,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
         
         content <- paste0(
           progress_bar,
-          '<div style="max-height: 200px; overflow-y: auto;">',
+          '<div style="max-height: 300px; overflow-y: auto;">',
           message_html,
           '</div>'
         )
@@ -333,39 +341,26 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
               city = city
             )
             
+            #if(city == 'Nicosia' || city == 'Limassol') stop('serious issue')
+            
             file_name <- glue::glue('{get_golem_config("path_store_reports")}/TAMEIAKH_{city}-{Sys.Date()}.xlsx')
             
             openxlsx::saveWorkbook(wb, file_name, overwrite = TRUE)
             
-            # Send Email  
-            #city = 'Nicosia'
-           
-            recipients <- city_emails() |> 
-              filter(city == !!city) |> 
-              pull(email)
+            new_file <- data.frame(city = city, file_name = file_name)
             
-            email_cashier(
-              city = city,
-              recipients = recipients,
-              path_attachement = file_name,
-              mail_credentials = mail_credentials()
-            )
-            
+            files_to_send(isolate(bind_rows(files_to_send(), new_file)))
             
             rm(wb)
             
-            #if(city == 'Nicosia') stop("Some issue here")
-            
-            progress$messages <- c(progress$messages, paste(icon('check', style = 'color:green;font-size:14px'), 
-                                                            " Done with ", report_name, " and sent email"))
+            progress$messages <- c(progress$messages, paste(icon_success(), ' ', report_name, ' done!'))
             
           }, error = function(e) {
             
             progress$errors <- progress$errors + 1
             
-            progress$messages <- c(progress$messages, 
-                                   paste(icon('xmark', style = 'color:red;font-size:14px'),
-                                         " Error when preparing ", report_name, ": Error message: ", e$message))
+            progress$messages <- c(progress$messages, paste(icon_failure(), 
+                                                            " Error when preparing ", report_name, ": Error message: ", e$message))
             
           })
           
@@ -386,19 +381,29 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
             
             if(progress$errors > 0){
               progress$messages <- c(progress$messages, 
-                                     paste(icon('exclamation-triangle', style = 'color:orange;font-size:20px'), 
+                                     paste("<br> <br>",
+                                           icon_warning(),  
                                            glue::glue(" Completed with {progress$errors} errors. 
                                                       Please check the messages above.")))
             } else {
               
               progress$messages <- c(progress$messages, 
-                                     paste(icon('circle-check', style = 'color:green;font-size:20px'), 
-                                           " All reports completed successfully!"))
+                                     paste("<br> <br>", icon_success_round(), " All reports created successfully!"))
             } 
             
             progress$is_complete <- TRUE
             progress$is_running <- FALSE
             
+            
+            shinyjs::show('download_all_reports', anim = TRUE)
+            shinyjs::show("block_send_emails", anim = TRUE)
+            
+            updateCheckboxGroupInput(
+              session,
+              "cities_to_send",
+              choices = files_to_send()$city,
+              selected = files_to_send()$city
+            )
             
             shinyjs::show("close_modal")
             
@@ -409,6 +414,119 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     }) |> 
       bindEvent(timer())
     
+    
+    observeEvent(input$send_emails, {
+      
+      req(files_to_send())
+      
+      if(is.null(input$cities_to_send) || length(input$cities_to_send) == 0){
+        showNotification("Please select at least one city to send the emails", type = "error")
+        return()
+      }
+      
+      # Clear the email progress content
+      
+      session$sendCustomMessage("updateProgressEmail", "<p>Starting to send emails. Please wait...</p>")
+      
+      #Send Emails with attachments
+      
+      cities <- input$cities_to_send |> purrr::set_names()
+      
+      res <- purrr::map(cities, function(city) {
+        
+        tryCatch({
+          
+          file_name <- files_to_send()$file_name[files_to_send()$city == city]
+          
+          recipients <- city_emails() |>
+            filter(city == !!city) |>
+            pull(email)
+          
+          #if(city == 'Nicosia' || city == 'Limassol') stop('serious issue')
+          
+          email_cashier(
+            city = city,
+            recipients = recipients,
+            path_attachement = file_name,
+            mail_credentials = mail_credentials()
+          )
+          
+          showNotification(glue::glue("Email sent successfully to {city}"), type = "message")
+          
+          return("OK")
+          
+        }, error = function(e) {
+          
+          showNotification(glue::glue("Error when sending email to {city}"), type = "error")
+          
+          e$message
+          
+        })
+        
+      })
+      
+      
+      cities_succeeded <- names(res)[res == "OK"]
+      cities_failed <- names(res)[res != "OK"]
+      
+      msg_success <- paste0(icon_success(), " ", cities_succeeded, ' sent!') |> paste(collapse = ' | ')
+      
+      msg_errors <- ''
+      
+      for (city in cities_failed) {
+        error_message <- res[[city]]
+        msg_errors <- c(msg_errors, paste0(icon_failure(), city, ' | Error message: ', error_message))
+      }
+      
+      content <- paste0("<p><p>", paste(c(msg_success, msg_errors ), collapse = "</p><p>"), "</p>")
+      
+      
+      # All reports done
+      
+      if(length(cities_failed) == 0){
+        
+        msg_end <- paste(icon_success_round(), " All reports were sent successfully!")
+        
+      } else {
+        
+        msg_end <- paste(icon_warning(),
+                         glue::glue(" Completed with {length(cities_failed)} errors. Please check the messages above."))
+        
+      } 
+      
+      content <- paste0(content, "<p>", msg_end, "</p>")
+      
+      session$sendCustomMessage("updateProgressEmail", content)
+      
+    })
+    
+    
+    output$download_all_reports <- downloadHandler(
+      
+      filename = function() {
+        
+        paste0("Cashier_Reports_", Sys.Date(), ".zip")
+        
+      },
+      
+      content = function(file) {
+        
+        req(files_to_send())
+        
+        # Create a temporary directory to store the files
+        temp_dir <- tempdir()
+        
+        # Copy the report files to the temporary directory
+        file.copy(files_to_send()$file_name, temp_dir, overwrite = TRUE)
+        
+        # Create a zip file containing all the report files
+        zip::zip(
+          zipfile = file, files = file.path(temp_dir, basename(files_to_send()$file_name)),
+          mode = "cherry-pick"
+        )
+        
+      }
+    )
     
     # Launch the Modal and indicate that process started
     observeEvent(input$generate_reports, {
@@ -426,11 +544,30 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       # Show modal
       showModal(modalDialog(
-        title = "Generating Reports",
+        title = "Generate Reports",
+        size = 'l',
         div(
           id = "progress_content",
-          p("Starting report generation..."),
-          div(id = "progress_messages")
+          p("Starting report generation...")
+        ),
+        shinyjs::hidden(
+          downloadButton(ns("download_all_reports"), "Download All Reports as ZIP", class = "btn-generate")
+        ),
+        shinyjs::hidden(
+          div(id = ns('block_send_emails'),
+              hr(),
+              h4("Send Report via Email"),
+              checkboxGroupInput(ns("cities_to_send"), 
+                                 "Select cities to send emails to:",
+                                 choices = character(0),
+                                 selected = character(0)),
+              
+              actionButton(ns("send_emails"), "Send Emails to the selected cities", class = "btn-generate")
+          )),
+        div(
+          id = "email_progress_content"
+          #p("Starting report generation..."),
+          #div(id = "email_progress_messages")
         ),
         footer = tagList(
           shinyjs::hidden(
@@ -447,6 +584,9 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     
     
     observeEvent(input$close_modal, {
+      
+      # intialise the files to send emails
+      files_to_send(NULL)
       removeModal()
     })
     
