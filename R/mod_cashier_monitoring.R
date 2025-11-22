@@ -65,8 +65,11 @@ mod_cashier_monitoring_ui <- function(id){
              box(
                width = 12,
                title = tags$b("Generate Cashier Monitoring Templates"),
-               "Once Cashier report and  Moneygram statements are loaded, click the button below to 
-               generate the Excel templates per city and email them email them to the city cashiers",
+               htmlOutput(ns("statement_date_report")),
+               p("Once ", tags$b("Cashier per Store report, Moneygram statement"), "and",
+                 tags$b("VIVA statement"), "are loaded, click to generate the Excel templates 
+                 per city and email them to the city cashiers"
+                 ),
                br(),
                br(),
                shinyjs::disabled(
@@ -105,7 +108,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
     statements <- rv(
       cashier_per_store = NULL,
       moneygram = NULL,
-      viva_per_store = NULL
+      viva_per_store = NULL,
+      statement_date = NULL
     )
     
     city_emails <- reactive({
@@ -188,7 +192,19 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       showNotification("A VIVA per Store statement has been loaded", type = "message")
       
-      # Currently not used in report generation
+      
+      # The date comes from the viva statement
+      if(is.null(res_load_viva_per_store$statement_date)){
+        showNotification("Could not determine the date of the VIVA statement. Please check the file", type = "error")
+        
+        return(NULL)
+      }
+      
+      showNotification(glue::glue("VIVA statement date set to {format(res_load_viva_per_store$statement_date, '%d/%m/%Y')}"), type = "message",
+                       duration = NULL
+                       )
+      statements$statement_date <- res_load_viva_per_store$statement_date
+      
       statements$viva_per_store <- res_load_viva_per_store$statement
       
       updateTabsetPanel(session, inputId = "tabs_loaded_statements", selected = "VIVA statement")
@@ -343,7 +359,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
             
             #if(city == 'Nicosia' || city == 'Limassol') stop('serious issue')
             
-            file_name <- glue::glue('{get_golem_config("path_store_reports")}/TAMEIAKH_{city}-{Sys.Date()}.xlsx')
+            file_name <- glue::glue('{get_golem_config("path_store_reports")}/TAMEIAKH_{city}-{statements$statement_date}.xlsx')
             
             openxlsx::saveWorkbook(wb, file_name, overwrite = TRUE)
             
@@ -505,7 +521,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       filename = function() {
         
-        paste0("Cashier_Reports_", Sys.Date(), ".zip")
+        paste0("Cashier_Reports_", statements$statement_date, ".zip")
         
       },
       
@@ -544,7 +560,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       # Show modal
       showModal(modalDialog(
-        title = "Generate Reports",
+        title = glue::glue("Generate Reports for {statements$statement_date |> format('%d/%m/%Y')}"),
         size = 'l',
         div(
           id = "progress_content",
@@ -588,6 +604,17 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       # intialise the files to send emails
       files_to_send(NULL)
       removeModal()
+    })
+    
+    output$statement_date_report <- renderText({
+      
+      if(!is.null(statements$statement_date)){
+        p( tags$b("Report Date: "), format(statements$statement_date, "%d/%m/%Y"), style = 'color:green; font-size:20px' ) |> as.character()
+      } else {
+        
+        p("Report Date: Not set (upload VIVA)", style = "color:red;") |> as.character()
+      }
+      
     })
     
     

@@ -173,7 +173,7 @@ read_viva_statement <- function(path){
     
     dta <- temp$result
     
-    needed_columns <- c('Transaction Type', 'ACS Account Code/Store', 'Amount')
+    needed_columns <- c('Transaction Type', 'ACS Account Code/Store', 'Amount', 'Day')
     
     if(!all(needed_columns %in% names(dta))){
       
