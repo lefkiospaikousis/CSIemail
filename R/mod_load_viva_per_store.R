@@ -27,14 +27,14 @@ mod_load_viva_per_store_ui <- function(id){
     # )
   )
 }
-    
+
 #' load_viva_per_store Server Functions
 #'
 #' @noRd 
 mod_load_viva_per_store_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
- 
+    
     statement_type <- 'viva_per_store'
     
     correct_file_type <- c("csv")
@@ -105,6 +105,30 @@ mod_load_viva_per_store_server <- function(id){
       shinyFeedback::hideFeedback("file_statement")
       shinyFeedback::showFeedbackSuccess("file_statement", paste0(statement_type, " file read OK!"))
       
+      # get viva statement date
+      viva_date <- unique(lubridate::dmy(dta$Day))
+      
+      # can't have two dates
+      
+      if(length(viva_date) != 1){
+        
+        shinyFeedback::hideFeedback("file_statement")
+        
+        shinyFeedback::showFeedbackDanger(
+          inputId = "file_statement",
+          text = "The VIVA statement has more than one date, please check the file"
+        )
+        
+        rv$statement_date <- NULL
+        
+        return(NULL)
+        
+      }
+      
+      
+      rv$statement_date <- viva_date
+      
+      
       # Extra Processing of the files
       
       dta |> 
@@ -156,9 +180,9 @@ mod_load_viva_per_store_server <- function(id){
     
   })
 }
-    
+
 ## To be copied in the UI
 # mod_load_viva_per_store_ui("load_viva_per_store_1")
-    
+
 ## To be copied in the server
 # mod_load_viva_per_store_server("load_viva_per_store_1")
