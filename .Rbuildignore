@@ -11,3 +11,5 @@ $run_dev.*
 ^DB$
 ^app\.R$
 ^rsconnect$
+^\.positai$
+^\.claude$
