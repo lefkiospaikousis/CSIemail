@@ -92,7 +92,7 @@ read_monitoring_statement <- function(path){
     
     store_unicode = '\u039A\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1'
     
-    needed_columns <- names_cashier_per_store[c("courier", "total_cash")]
+    needed_columns <- names_cashier_per_store[c("courier", "total_cash", "total_card")]
     
     if(!all(needed_columns %in% names(dta))){
       

@@ -133,9 +133,9 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, c
     # STORE NAME
     # Write the store name as headline
     openxlsx::writeData(wb, 'Sheet1', 
-              paste0('Store: ', store), 
-              startRow = row_start, startCol = 1, 
-              colNames = FALSE
+                        paste0('Store: ', store), 
+                        startRow = row_start, startCol = 1, 
+                        colNames = FALSE
     )
     
     # Bold the STORE NAME
@@ -148,10 +148,10 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, c
     
     ## Courier data -----------------------------------------------------------
     openxlsx::writeData(wb, 'Sheet1', 
-              tbl_store |> select(-store), 
-              startRow = row_start + 1, 
-              startCol = 1, 
-              colNames = FALSE
+                        tbl_store |> select(-store), 
+                        startRow = row_start + 1, 
+                        startCol = 1, 
+                        colNames = FALSE
     )
     
     # style font size
@@ -167,9 +167,9 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, c
     length_entries <- nrow(tbl_store) - 1 # remove the total row
     
     openxlsx::writeFormula(wb, 'Sheet1', 
-                 x = rep('(cash_received+visa_received+cheques_received)-tamiaki', length_entries),
-                 startRow = (row_start + 1), 
-                 startCol = col_difference
+                           x = rep('(cash_received+visa_received+cheques_received)-tamiaki', length_entries),
+                           startRow = (row_start + 1), 
+                           startCol = col_difference
     )
     
     # Style the font size in the table
@@ -217,24 +217,24 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, c
     
     # we start at the store level row , which is the row_start
     openxlsx::writeData(wb, 'Sheet1', 
-              store_moneygram, 
-              startRow = row_start, 
-              startCol = col_moneygram_owed, 
-              colNames = FALSE
+                        store_moneygram, 
+                        startRow = row_start, 
+                        startCol = col_moneygram_owed, 
+                        colNames = FALSE
     )
     
     # Write the formula for the difference
     openxlsx::writeFormula(wb, 'Sheet1', 
-                 x = 'moneygram_received-moneygram_owed',
-                 startRow = row_start, 
-                 startCol = col_moneygram_difference
+                           x = 'moneygram_received-moneygram_owed',
+                           startRow = row_start, 
+                           startCol = col_moneygram_difference
     )
     
     # style the 3 cells in the row with borders
     openxlsx::addStyle(wb, 'Sheet1',
                        style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
                                                      fontSize = font_size
-                                                     ),
+                       ),
                        rows = row_start,
                        cols = col_moneygram_owed:col_moneygram_difference,
                        gridExpand = TRUE, stack = TRUE
@@ -261,22 +261,104 @@ prepare_store_monitoring <- function(wb, dta_cashier, dta_moneygram, dta_viva, c
       filter(store == !!store) |>
       select(store_viva)
     
+    if(is.na(store_viva)) store_viva <- 0
+    
     # we start at the store level row , which is the row_start
     openxlsx::writeData(wb, 'Sheet1', 
-              store_viva, 
-              startRow = row_start, 
-              startCol = col_viva_owed, 
-              colNames = FALSE
+                        store_viva, 
+                        startRow = row_start, 
+                        startCol = col_viva_owed, 
+                        colNames = FALSE
     )
     
-    # style the 3 cells in the row with borders and the owed cell as yellow
+    store_visa <- all_stores |> 
+      filter(store == !!store) |>
+      select(store_visa)
+    
+    if(is.na(store_visa)) store_visa <- 0
+    
+    openxlsx::writeData(wb, 'Sheet1', 
+                        store_visa, 
+                        startRow = row_start + 1, 
+                        startCol = col_viva_owed, 
+                        colNames = FALSE
+    )
+    
+    clm <- openxlsx::int2col(col_viva_owed)
+    
+    # frmla = paste0('SUM(', clm, row_start ,":", clm, row_start + 1, ")")
+    frmla = paste0(clm, row_start , "-", clm, row_start + 1)
+    openxlsx::writeFormula(wb, 'Sheet1', 
+                           #x = rep('(cash_received+visa_received+cheques_received)-tamiaki', length_entries),
+                           x = frmla,
+                           startRow = row_start + 2, 
+                           startCol = col_viva_owed
+    )
+    
+    if(!is.na(store_viva - store_visa)){
+      
+      # style the result of the subtraction red or green
+      style_red <- openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
+                                         fontSize = font_size,
+                                         fgFill = 'red'
+      )
+      style_green <- openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
+                                           fontSize = font_size,
+                                           fgFill = 'green'
+      )
+      
+      if( (store_viva - store_visa) < 0 ){
+        #style_to_apply <- style_red
+        
+        openxlsx::addStyle(wb, 'Sheet1',
+                           style = style_red,
+                           rows = row_start + 2,
+                           cols = col_viva_owed,
+                           gridExpand = TRUE, stack = TRUE
+        )
+        
+      } 
+      
+      if( (store_viva - store_visa) == 0 ){
+        
+        openxlsx::addStyle(wb, 'Sheet1',
+                           style = style_green,
+                           rows = row_start + 2,
+                           cols = col_viva_owed,
+                           gridExpand = TRUE, stack = TRUE
+        )
+        
+      } 
+      
+      # Whtaever, make the subtraction cell, font big
+      openxlsx::addStyle(wb, 'Sheet1',
+                         style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
+                                                       fontSize = font_size
+                         ),
+                         rows = row_start + 2,
+                         cols = col_viva_owed,
+                         gridExpand = TRUE, stack = TRUE
+      )
+      
+      
+      
+      # openxlsx::addStyle(wb, 'Sheet1',
+      #                    style = style_to_apply,
+      #                    rows = row_start + 2,
+      #                    cols = col_viva_owed,
+      #                    gridExpand = TRUE, stack = TRUE
+      # )
+    }
+    
+    
+    # style the 2 cells VIVA and below (visa) with borders and yellow background
     
     openxlsx::addStyle(wb, 'Sheet1',
                        style = openxlsx::createStyle(border = c('top', 'bottom', 'left', 'right'),
                                                      fontSize = font_size,
                                                      fgFill = 'yellow'
                        ),
-                       rows = row_start,
+                       rows = c(row_start, row_start + 1),
                        cols = col_viva_owed,
                        gridExpand = TRUE, stack = TRUE
     )
