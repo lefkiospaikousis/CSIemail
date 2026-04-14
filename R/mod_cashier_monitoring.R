@@ -529,15 +529,15 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
         
         req(files_to_send())
         
-        # Create a temporary directory to store the files
-        temp_dir <- tempdir()
-        
-        # Copy the report files to the temporary directory
-        file.copy(files_to_send()$file_name, temp_dir, overwrite = TRUE)
-        
-        # Create a zip file containing all the report files
+        # # Create a temporary directory to store the files
+        # temp_dir <- tempdir()
+        # 
+        # # Copy the report files to the temporary directory
+        # file.copy(files_to_send()$file_name, temp_dir, overwrite = TRUE)
+        # 
+        # # Create a zip file containing all the report files
         zip::zip(
-          zipfile = file, files = file.path(temp_dir, basename(files_to_send()$file_name)),
+          zipfile = file, files = files_to_send()$file_name,
           mode = "cherry-pick"
         )
         
