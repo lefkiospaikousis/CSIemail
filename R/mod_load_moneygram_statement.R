@@ -33,7 +33,7 @@ mod_load_moneygram_statement_ui <- function(id){
 #' load_moneygram_statement Server Functions
 #'
 #' @noRd 
-mod_load_moneygram_statement_server <- function(id){
+mod_load_moneygram_statement_server <- function(id, conn){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -122,12 +122,13 @@ mod_load_moneygram_statement_server <- function(id){
       
       
       
-      rv$statement <- statement() |> 
-        # add the store id
+      rv$statement <- statement() |>
+        # add the store id - read the mapping fresh so edits in the Database
+        # tab are picked up without an app restart
         left_join(
-          session$userData$moneygram_stores |> select(agent_id, store), 
+          get_moneygram_stores(conn),
           by = c("agent_id")
-          ) |> 
+          ) |>
         select(store, everything())
       
     })
