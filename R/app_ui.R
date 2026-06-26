@@ -27,7 +27,7 @@ app_ui <- function(request) {
                     menuItem("2. Send emails", tabName = "email", icon = icon("envelope")),
                     hr(style = "width:80%"),
                     menuItem("Cashier Monitoring", tabName = "monitoring", icon = icon("table")),
-                    menuItem("Email List", tabName = "dbase", icon = icon("database")),
+                    menuItem("Database", tabName = "dbase", icon = icon("database")),
                     #menuItemOutput("managerUI"),
                     tags$hr(style = "border-color: white; width:80%"),
                     p(paste0("Version: ", golem::get_golem_version()), style = "margin-left:25px"),

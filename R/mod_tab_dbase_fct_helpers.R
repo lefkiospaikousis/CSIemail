@@ -185,8 +185,87 @@ verify_delete_city <- function(session, city) {
 }
 
 
+#' Entry form to add/ edit a moneygram store mapping
+#' a modalDialog. Needs to be a function to run properly (lazy loading?)
+#' @param edit Logical. When TRUE the Agent ID (the key) is locked
+#' @param store A one-row list/dataframe of the moneygram store being edited
+#' @noRd
+entry_form_moneygram <- function(session, edit = FALSE, store = NULL) {
+
+  ns <- session$ns
+
+  if(edit && is.null(store)) {
+    stop("No moneygram store given")
+  }
+
+  mode <- if(edit) {"Edit"} else {"Add"}
+  title <- glue("{mode} a moneygram store")
+
+  agent_id_input <- textInput(ns("agent_id"), "Agent ID")
+
+  # The Agent ID is the key - lock it when editing an existing row
+  if(edit) {
+    agent_id_input <- shinyjs::disabled(agent_id_input)
+  }
+
+  modalDialog(
+    tagList(
+      h3(title),
+      agent_id_input,
+      textInput(ns("agent_name"), "Agent name"),
+      textInput(ns("store_code"), "Acs store code")
+    ),
+    tagList(
+      actionButton(ns("submit"), "Submit", class = "btn-success"),
+      modalButton("Cancel")
+    )
+
+    , footer = NULL
+  )
+
+}
+
+
+#' Modal dialog for delete verification of a moneygram store
+#'
+#' @param session The current session object
+#' @param store A one-row dataframe of the moneygram store
+#' @noRd
+verify_delete_moneygram <- function(session, store) {
+
+  stopifnot(nrow(store) == 1)
+  ns <- session$ns
+
+  modalDialog(
+    div(
+      style = "padding: 10px;",
+      class = "text-center",
+      h4(
+        style = "line-height: 1.00;",
+        paste0(
+          'Are you sure you want to delete the moneygram store "',
+          store$`Agent name`, '" (Agent ID: ',
+          store$`Agent ID`, ', store: ',
+          store$`Acs store code`, ')?'
+        )
+      )
+    ),
+    title = "Delete a moneygram store",
+    size = "m",
+    footer = list(
+      modalButton("Cancel"),
+      actionButton(
+        ns("submit_delete"),"Delete", class = "btn-danger",
+        style="color: #fff;"
+      )
+    )
+  )
+
+}
+
+
 #' Modal dialog for delete verification
-#' 
+#'
 #' @param session The current session object
 #' @param city A one-row dataframe of the store
 #' @noRd

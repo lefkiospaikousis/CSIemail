@@ -24,19 +24,6 @@ app_server <- function( input, output, session ) {
   })
   
   
-  observe({
-    
-    moneygram_stores <- readxl::read_excel(get_golem_config('moneygram_stores'))
-    
-    moneygram_stores <- moneygram_stores |> 
-      mutate(`Agent ID` = as.character(`Agent ID`)) |>
-      select(agent_id = 'Agent ID', store = `Acs store code`)
-    
-    session$userData$moneygram_stores <- moneygram_stores
-    
-    
-  })
-  
   
   rv <- rv(
     
@@ -85,6 +72,22 @@ app_server <- function( input, output, session ) {
   path <- CSIemail:::get_golem_config("db_path", configuration)
   
   dbase_csi <- DBI::dbConnect(RSQLite::SQLite(), path)
+  
+  
+  observe({
+    
+    req(dbase_csi)
+    
+    moneygram_stores = dbase_csi |> tbl('moneygram_stores') |> collect()
+    #moneygram_stores <- readxl::read_excel(get_golem_config('moneygram_stores'))
+    moneygram_stores <- moneygram_stores |> 
+      mutate(`Agent ID` = as.character(`Agent ID`)) |>
+      select(agent_id = 'Agent ID', store = `Acs store code`)
+    
+    session$userData$moneygram_stores <- moneygram_stores
+    
+    
+  })
   
   
   # User IP Information -----------------------------------------------------

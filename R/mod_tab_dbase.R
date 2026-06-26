@@ -12,7 +12,7 @@ mod_tab_dbase_ui <- function(id){
   tagList(
     
     fluidRow(
-      box(title = 'Emails', width = 8,
+      box(title = 'Database', width = 8,
           tabsetPanel(
             tabPanel('Store Emails',
                      buttons_edit(ns),
@@ -23,6 +23,9 @@ mod_tab_dbase_ui <- function(id){
             ),
             tabPanel('Cashier Groups',
                      mod_cashier_groups_ui(ns("cachier_groups_1"))
+            ),
+            tabPanel('Moneygram Stores',
+                     mod_moneygram_stores_ui(ns("moneygram_stores_1"))
             )
           )
       )
@@ -42,6 +45,7 @@ mod_tab_dbase_server <- function(id, conn){
     
     res_cashier_groups_emails <- mod_cachier_groups_emails_server("cachier_groups_emails_1", conn)
     res_cashier_groups <- mod_cashier_groups_server("cachier_groups_1", conn)
+    res_moneygram_stores <- mod_moneygram_stores_server("moneygram_stores_1", conn)
     
     tbl_emails_proxy <- DT::dataTableProxy("tbl_emails")
     
