@@ -154,8 +154,8 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
     })
     
-    res_load_moneygram <- mod_load_moneygram_statement_server("load_moneygram_statement_1")
-    
+    res_load_moneygram <- mod_load_moneygram_statement_server("load_moneygram_statement_1", dbase_csi)
+
     res_load_cashier_per_store <- mod_load_cashier_per_store_server("load_cashier_per_store_1")
     
     res_load_viva_per_store <- mod_load_viva_per_store_server("load_viva_per_store_1")

@@ -34,8 +34,29 @@ append_to_db <- function(data, table_name) {
 }
 
 
+#' Read the moneygram agent -> ACS store mapping from the DB
+#'
+#' Reads the `moneygram_stores` table fresh and cleans it for joining onto a
+#' moneygram statement: casts the `Agent ID` (stored as REAL) to character and
+#' renames to `agent_id`/`store`. Read at point-of-use so that edits made in
+#' the Database tab are picked up without an app restart.
+#'
+#' @param conn The RSQLite connection
+#' @return A tibble with columns `agent_id` (character) and `store`
+#' @noRd
+get_moneygram_stores <- function(conn) {
+
+  conn |>
+    tbl("moneygram_stores") |>
+    collect() |>
+    mutate(`Agent ID` = as.character(`Agent ID`)) |>
+    select(agent_id = `Agent ID`, store = `Acs store code`)
+
+}
+
+
 #' Check if a statemnt is already in the db based on the date
-#' 
+#'
 
 check_statement_in_db <- function(statement_date, statement_type) {
   
