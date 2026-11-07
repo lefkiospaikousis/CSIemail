@@ -10,3 +10,6 @@ service.out.log
 error_log.Rout
 mail_improvast
 .positai
+
+# Machine-specific config (holds the shinymanager passphrase). Template: inst/golem-config.example.yml
+inst/golem-config.yml

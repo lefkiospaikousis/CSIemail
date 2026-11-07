@@ -35,8 +35,14 @@ app_server <- function( input, output, session ) {
   )
   
   
-  configuration <- Sys.getenv("GOLEM_CONFIG_ACTIVE", "default")
-  
+  # Same lookup as get_golem_config(): GOLEM_CONFIG_ACTIVE, then R_CONFIG_ACTIVE
+  configuration <- active_config()
+
+  mode <- app_mode_info()
+  cli::cli_alert_info(
+    "Config profile {.val {mode$profile}} | SMTP credentials: {.val {mode$smtp_source}} | cashier recipients table: {.val {mode$cashier_table}}"
+  )
+
   res_auth <- shinymanager::secure_server(
     
     check_credentials = shinymanager::check_credentials(

@@ -1,0 +1,34 @@
+# TEMPLATE - copy to inst/golem-config.yml and fill in the <...> values.
+# inst/golem-config.yml is git-ignored: each machine (dev laptops, production
+# server) keeps its own copy. Never commit real passphrases or addresses.
+
+default:
+  golem_name: CSIemail
+  golem_version: 0.2.0
+  app_prod: no
+  smtp_creds: mail_improvast
+  smtp_creds_source: file              # file = blastula creds file named by smtp_creds; keyring = OS keyring key
+  cashier_emails_table: city_emails2   # city_emails = real city cashiers; city_emails2 = test recipients
+  sender: "<sender email address>"
+  db_path: DB/csi_db.db
+  db_users: DB/credentials.sqlite
+  users_passphrase: "<shinymanager passphrase used to encrypt DB/credentials.sqlite>"
+  acs_template: data-raw/ACS CSI template.xlsx
+  th_template: data-raw/TH CSI template.xlsx
+  cashier_template: data-raw/template_report.xlsx
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")
+production:
+  app_prod: yes
+  sender: "<sender email address>"
+  smtp_creds: acs
+  smtp_creds_source: keyring
+  cashier_emails_table: city_emails
+  path_store_reports: !expr tempdir()
+dev:
+  app_prod: no
+  golem_wd: !expr here::here()
+  sender: "<sender email address>"
+  smtp_creds: mail_improvast
+  smtp_creds_source: file
+  cashier_emails_table: city_emails2
+  path_store_reports: !expr file.path(here::here(), "SampleData/CashierReports")

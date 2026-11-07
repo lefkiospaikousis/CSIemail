@@ -30,7 +30,9 @@ app_ui <- function(request) {
                     menuItem("Database", tabName = "dbase", icon = icon("database")),
                     #menuItemOutput("managerUI"),
                     tags$hr(style = "border-color: white; width:80%"),
-                    p(paste0("Version: ", golem::get_golem_version()), style = "margin-left:25px"),
+                    # Version from DESCRIPTION (golem-config.yml is per machine and git-ignored)
+                    p(paste0("Version: ", utils::packageVersion("CSIemail")), style = "margin-left:25px"),
+                    mode_badge(),
                     div(
                       textOutput("userName"), style = "margin-left:25px"
                       )
