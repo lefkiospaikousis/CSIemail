@@ -169,7 +169,7 @@ Ranked roughly by impact.
 | O8 | Very long functions: `mod_cashier_monitoring_server` (~610 lines) and `prepare_store_monitoring` (~370 lines, hard-coded cells) | |
 | O9 | The sysdata build script is broken | [data-raw/create_global_values.R:75](../../data-raw/create_global_values.R#L75) |
 | O10 | The seeding script overwrites the `emails` table and adds personal test addresses | [data-raw/create_store_email_table.R](../../data-raw/create_store_email_table.R) |
-| O11 | Old log files are committed (`error_log.Rout`, `service.*.log`, `launch_on_browser.log`). Some of them are also listed in `.gitignore` | repo root |
+| O11 | ✅ **Fixed (2026-11-08).** Log files (`error_log.Rout`, `service.*.log`, `launch_on_browser.log`) used to be committed, three of them hidden with the `skip-worktree` flag. They're now untracked, and `*.log` / `*.Rout` are git-ignored | [.gitignore](../../.gitignore) |
 | O12 | CLAUDE.md is out of date: it mentions a stray `browser()` in `app_server.R` that no longer exists. There are no `browser()` calls in `R/` | [CLAUDE.md](../../CLAUDE.md) |
 
 ### Dead code (safe to remove once confirmed)

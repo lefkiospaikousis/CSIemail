@@ -38,7 +38,7 @@ flowchart LR
 Nothing in the repo sets up HTTPS, a reverse proxy or a firewall rule. The app serves plain HTTP on the LAN.
 
 > ⚠️ TO CONFIRM (deployment facts that aren't in the code):
-> - The server's hostname or IP, and whether port 3846 is the only one in use. An old [error_log.Rout](../../error_log.Rout) shows the app listening on port 3845 at some point.
+> - The server's hostname or IP, and whether port 3846 is the only one in use. An old copy of `error_log.Rout` (formerly in git, now git-ignored) shows the app listening on port 3845 at some point.
 > - **How the process is supervised.** CLAUDE.md and the root README say Windows Task Scheduler. But `.gitignore` lists `How to set up the NSSM service.txt`, and `service.out.log` / `service.err.log` exist, which suggests an NSSM Windows service. Which is current, and what's the trigger (at startup? restart on failure?)?
 > - Which Windows account runs it. This matters for the `acs` keyring entry, which is per-user.
 > - The R version on the server (the `.bat` says 4.1.0, `renv.lock` says 4.2.3), and whether `renv` is restored there.
@@ -64,6 +64,11 @@ Nothing in the repo documents a release process. The checklist below follows fro
       - Check the startup log for `Config key … is missing` warnings.
 
 > ⚠️ **One-time step for the release that stopped tracking `golem-config.yml`.** If the server folder is a git checkout, the first `git pull` that includes the commit removing `inst/golem-config.yml` from git **deletes the server's copy**. Before pulling, copy `inst/golem-config.yml` somewhere outside the folder, pull, then copy it back. Later pulls leave it alone. This doesn't apply if you deploy by copying files.
+>
+> The commit that untracked the log files has the same effect: pulling it **deletes** the server's `error_log.Rout`, `service.*.log` and `launch_on_browser.log`.
+> - Copy `error_log.Rout` first if you still need its contents.
+> - **Stop the app before pulling**, as in step 2 above. The running app holds `error_log.Rout` open, and Windows won't let git delete an open file.
+> - The launcher creates a fresh `error_log.Rout` on the next start.
 >
 > In the same release, add these keys to the server's `production:` section (the code falls back to the old behaviour if you forget):
 > ```yaml
@@ -91,6 +96,8 @@ There are no release tags yet, so for now a rollback means going back to a known
 |---|---|
 | `error_log.Rout` (production path in [launch_on_browser.R:7](../../launch_on_browser.R#L7)) | R messages and warnings, `cli::cli_alert_*` output from the fct functions, and the "Listening on …" line. **It's overwritten on every restart** |
 | stdout | `print()` and `cat()` calls (e.g. "Doing application cleanup", DB error objects). Not captured by the launcher, so whether it's kept depends on the supervisor (⚠️) |
-| `service.out.log` / `service.err.log` in the repo | stale files from 2022. Ignore them |
+| `service.out.log` / `service.err.log` (local, git-ignored) | stale files from 2022. Ignore them |
+
+All `*.log` and `*.Rout` files are git-ignored, so logs never travel with the code.
 
 There's no health check, uptime monitor or alerting.

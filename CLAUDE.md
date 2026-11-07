@@ -116,3 +116,4 @@ The email/cashier tables key on a generated `uuid`/`uid` column, and UPDATE/DELE
 - `save_csi_to_disk()` calls `Sys.setlocale()` with Windows locale names, which affects the whole R process.
 - Cashier reports still exclude stores missing from `cashier_groups` and Moneygram agents missing from `moneygram_stores`. They're now listed by `find_unmatched()`, so keep that function in step if you change how statements are joined. The Moneygram mapping is applied when the file is loaded, so after a mapping fix the file must be loaded again.
 - There are no `browser()` calls in `R/`. Don't commit any.
+- Log files (`*.log`, `*.Rout`, e.g. `error_log.Rout`, `service.*.log`) are git-ignored. Never commit them, and don't use `git update-index --skip-worktree` to hide tracked files: three logs had that flag, which hid them from `git status` while they stayed tracked.

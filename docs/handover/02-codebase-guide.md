@@ -19,7 +19,7 @@
 | `DB/` | ❌ (`.gitignore`) | ❌ | SQLite databases and CSV copies |
 | `SampleData/` | ❌ | ❌ | Sample input files, plus `CashierReports/`, the output folder for the default and dev profiles |
 | `Scripts/` | ❌ | ❌ | Ad-hoc exploration scripts and the user-DB creation script |
-| `error_log.Rout`, `service.*.log`, `launch_on_browser.log` | ✅ (`error_log.Rout` and `service.out.log` are also listed in `.gitignore`, but were committed before that) | — | Old log files. Not current |
+| `error_log.Rout`, `service.*.log`, `launch_on_browser.log` | ❌ (`*.log` and `*.Rout` are git-ignored; untracked on 2026-11-08) | — | Runtime log files. They stay local on each machine |
 | `mail_improvast` | ❌ | — | blastula SMTP credentials file for dev. **Contains a secret** |
 
 ## `R/`, file by file

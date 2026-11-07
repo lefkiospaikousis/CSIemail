@@ -6,10 +6,12 @@ Scripts
 SampleData
 DB
 How to set up the NSSM service.txt
-service.out.log
-error_log.Rout
 mail_improvast
 .positai
 
 # Machine-specific config (holds the shinymanager passphrase). Template: inst/golem-config.example.yml
 inst/golem-config.yml
+
+# Log files (error_log.Rout from launch_on_browser.R, service.*.log, launch_on_browser.log)
+*.log
+*.Rout
