@@ -150,6 +150,7 @@ devtools::test()            # or testthat::test_local()
 | [test-crud-modules.R](../../tests/testthat/test-crud-modules.R) | All four Database-tab modules: Edit → Cancel → Add inserts (the B1 regression), normal Edit changes only the selected row, normal Add inserts, Moneygram rejects a duplicate Agent ID |
 | [test-email-mode.R](../../tests/testthat/test-email-mode.R) | `active_config()` lookup order. The config keys win over `golem.app.prod`. Fallback and warning when the keys are missing. An invalid value errors. `mail_credentials()` dispatch (blastula mocked). The sidebar TEST flag. The template defines the keys for every profile and holds only placeholder secrets |
 | [test-find-unmatched.R](../../tests/testthat/test-find-unmatched.R) | `find_unmatched()` for each statement type, the amount sums, rows with no store, and the modal warning |
+| [test-run-app.R](../../tests/testthat/test-run-app.R) | `run_app()` registers `www/` before any login, so the login-page logo loads |
 | [test-mod-cashier-monitoring.R](../../tests/testthat/test-mod-cashier-monitoring.R) | Re-read of Cashier Groups on Re-check and Generate, recipients on Send, the recipient table coming from `cashier_emails_table()`, unmatched reporting, and loading the three sample files through the UI inputs |
 
 How the suite is set up:

@@ -14,6 +14,13 @@ run_app <- function(
   uiPattern = "/",
   ...
 ) {
+
+  # Serve inst/app/www under "www/" from the start. golem normally registers
+  # it inside app_ui(), but shinymanager only calls app_ui() AFTER a
+  # successful login - so without this the login page's logo (www/logo.png)
+  # is a 404 until someone has logged in once in this R process.
+  golem::add_resource_path("www", app_sys("app/www"))
+
   with_golem_options(
     app = shinyApp(
       #ui = app_ui,

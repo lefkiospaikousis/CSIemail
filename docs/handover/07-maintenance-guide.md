@@ -154,6 +154,7 @@ Ranked roughly by impact.
 | B9 | `cli_abort` message uses `collpase` (typo) | [R/fct_read_helpers.R:100](../../R/fct_read_helpers.R#L100), [L181](../../R/fct_read_helpers.R#L181) | garbled error text |
 | B10 | `Sys.setlocale()` changes the locale for the whole process while files are written | [R/mod_tab_send_emails_fct_helpers.R:5-6](../../R/mod_tab_send_emails_fct_helpers.R#L5-L6) | could affect concurrent sessions. Windows-only |
 | B11 | The template's `viva_received` named range is `#REF!` | `data-raw/template_report.xlsx` | unused today, but a trap |
+| B12 | ✅ **Fixed (2026-11-08).** The logo on the login page was missing after every app start, and only appeared once someone had logged in. shinymanager renders the login page without calling `app_ui()`, and `app_ui()` was where golem registered `www/`, so `www/logo.png` was a 404 until the first login in that R process. `run_app()` now registers `www/` itself | [R/run_app.R](../../R/run_app.R), test in [tests/testthat/test-run-app.R](../../tests/testthat/test-run-app.R) | — |
 
 ### Operational and structural risks
 
