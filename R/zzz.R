@@ -18,3 +18,10 @@ safe_readCSV <- function(...) "dummy"
   safe_readCSV <<- purrr::safely(readr::read_csv)
 }
 
+# Force the libraries that need to be tracked in the renv.lock file 
+load_hidden_packages <- function(){
+
+  if(FALSE){
+    library('dbplyr')
+  }
+}

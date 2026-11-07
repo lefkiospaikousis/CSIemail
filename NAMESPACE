@@ -5,37 +5,53 @@ export(run_app)
 import(dplyr)
 import(shiny)
 import(shinydashboard)
-importFrom(DT,DTOutput)
-importFrom(DT,datatable)
-importFrom(DT,renderDT)
+importFrom(DT,
+  DTOutput,
+  datatable,
+  renderDT
+)
 importFrom(glue,glue)
-importFrom(golem,activate_js)
-importFrom(golem,add_resource_path)
-importFrom(golem,bundle_resources)
-importFrom(golem,favicon)
-importFrom(golem,with_golem_options)
-importFrom(openxlsx,writeData)
-importFrom(openxlsx,writeDataTable)
-importFrom(purrr,map)
-importFrom(purrr,map2)
-importFrom(purrr,map_lgl)
-importFrom(purrr,pmap)
-importFrom(purrr,pwalk)
-importFrom(purrr,walk)
-importFrom(purrr,walk2)
-importFrom(reactable,colDef)
-importFrom(reactable,colFormat)
-importFrom(reactable,reactable)
-importFrom(shiny,HTML)
-importFrom(shiny,NS)
-importFrom(shiny,column)
-importFrom(shiny,shinyApp)
-importFrom(shiny,tagAppendAttributes)
-importFrom(shiny,tagList)
-importFrom(shiny,tags)
+importFrom(golem,
+  activate_js,
+  add_resource_path,
+  bundle_resources,
+  favicon,
+  with_golem_options
+)
+importFrom(openxlsx,
+  writeData,
+  writeDataTable
+)
+importFrom(purrr,
+  map,
+  map2,
+  map_lgl,
+  pmap,
+  pwalk,
+  walk,
+  walk2
+)
+importFrom(reactable,
+  colDef,
+  colFormat,
+  reactable
+)
+importFrom(shiny,
+  HTML,
+  NS,
+  column,
+  shinyApp,
+  tagAppendAttributes,
+  tagList,
+  tags
+)
 importFrom(shinyFeedback,showToast)
-importFrom(shinyjs,disable)
-importFrom(shinyjs,enable)
-importFrom(shinyjs,toggleState)
-importFrom(stats,na.omit)
-importFrom(stats,setNames)
+importFrom(shinyjs,
+  disable,
+  enable,
+  toggleState
+)
+importFrom(stats,
+  na.omit,
+  setNames
+)
