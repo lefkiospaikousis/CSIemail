@@ -62,6 +62,10 @@ mod_moneygram_stores_server <- function(id, conn){
 
     observeEvent(input$btn_add, {
 
+      # Clear any leftover edit target (e.g. Edit -> Cancel), otherwise the
+      # submit would UPDATE that agent instead of inserting a new one
+      rv$store_to_edit <- NULL
+
       showModal(entry_form_moneygram(session))
 
     })

@@ -86,7 +86,11 @@ mod_tab_dbase_server <- function(id, conn){
     
     
     observeEvent(input$btn_add, {
-      
+
+      # Clear any leftover edit target (e.g. Edit -> Cancel), otherwise the
+      # submit would UPDATE that row instead of inserting a new one
+      rv$store_to_edit <- NULL
+
       showModal(entry_form(session))
       
     })
@@ -182,7 +186,8 @@ mod_tab_dbase_server <- function(id, conn){
     
     form_data <- reactive({
       
-      store <- isolate(rv$store_to_edit)
+      # Not isolated: the uid must follow the current edit target
+      store <- rv$store_to_edit
       
       data.frame(
         uid = if(!is.null(store)) {store$uid} else {uuid::UUIDgenerate()},

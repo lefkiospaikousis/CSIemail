@@ -64,7 +64,11 @@ mod_cachier_groups_emails_server <- function(id, conn){
     
     
     observeEvent(input$btn_add, {
-      
+
+      # Clear any leftover edit target (e.g. Edit -> Cancel), otherwise the
+      # submit would UPDATE that row instead of inserting a new one
+      rv$city_to_edit <- NULL
+
       showModal(entry_form_city(session))
       
     })
@@ -158,7 +162,8 @@ mod_cachier_groups_emails_server <- function(id, conn){
     
     form_data <- reactive({
       
-      city <- isolate(rv$city_to_edit)
+      # Not isolated: the uuid must follow the current edit target
+      city <- rv$city_to_edit
       
       data.frame(
         uuid   = if(!is.null(city)) {city$uuid} else {uuid::UUIDgenerate()},
