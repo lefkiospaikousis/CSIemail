@@ -52,6 +52,14 @@ mod_cashier_monitoring_ui <- function(id){
                      title = "VIVA statement",
                      br(),
                      DT::DTOutput(ns("statement_viva_per_store"))
+                   ),
+                   tabPanel(
+                     title = "Not matched",
+                     br(),
+                     p("Rows of the loaded statements that will NOT appear in any city report.",
+                       actionLink(ns("recheck_unmatched"), "Re-check against the Database",
+                                  icon = icon("rotate"))),
+                     DT::DTOutput(ns("unmatched"))
                    )
                  )
              )
@@ -112,24 +120,76 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       statement_date = NULL
     )
     
+    # The reference tables are re-read when these counters are bumped
+    # (Generate / Send / Re-check), so edits made in the Database tab are
+    # picked up without a page reload
+    groups_refresh <- reactiveVal(0)
+    emails_refresh <- reactiveVal(0)
+
     city_emails <- reactive({
-      
-      if(golem::app_dev()){
-        db_table <- "city_emails2"
-      } else {
-        db_table <- db_tables[["city_emails"]]
-      }
-      
-      dbase_csi |> 
-        tbl(db_table) |> 
+
+      emails_refresh()
+
+      # city_emails (real cashiers) or a test list - set in golem-config.yml
+      dbase_csi |>
+        tbl(cashier_emails_table()) |>
         collect()
-      
+
     })
-    
+
     store_groups <- reactive({
-      dbase_csi |> 
-        tbl(db_tables[["cashier_groups"]]) |> 
+
+      groups_refresh()
+
+      dbase_csi |>
+        tbl(db_tables[["cashier_groups"]]) |>
         collect()
+    })
+
+    # Rows that will be silently left out of every report
+    unmatched <- reactive({
+
+      find_unmatched(
+        cashier   = statements$cashier_per_store,
+        moneygram = statements$moneygram,
+        viva      = statements$viva_per_store,
+        groups    = store_groups()
+      )
+    })
+
+    observeEvent(input$recheck_unmatched, {
+      groups_refresh(groups_refresh() + 1)
+    })
+
+    # Warn as soon as a loaded statement has rows that won't be reported
+    observeEvent(unmatched(), {
+
+      n <- nrow(unmatched())
+
+      if (n > 0) {
+        showNotification(
+          glue::glue("{n} row(s) of the loaded statements will not appear in any report. See the 'Not matched' tab."),
+          type = "warning", duration = 10
+        )
+      }
+    }, ignoreInit = TRUE)
+
+    output$unmatched <- DT::renderDT({
+
+      validate(need(
+        !is.null(statements$cashier_per_store) || !is.null(statements$moneygram) || !is.null(statements$viva_per_store),
+        "No statement loaded"
+      ))
+
+      validate(need(nrow(unmatched()) > 0, "Everything in the loaded statements matches the Database."))
+
+      DT::datatable(
+        unmatched(),
+        rownames = FALSE,
+        colnames = c("Statement", "Store", "Problem", "Amount"),
+        options = list(pageLength = 10, scrollX = TRUE)
+      ) |>
+        DT::formatRound("amount", 2)
     })
     
     cities <- reactive({
@@ -440,8 +500,11 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
         return()
       }
       
+      # Re-read the recipients so Database-tab edits are used
+      emails_refresh(emails_refresh() + 1)
+
       # Clear the email progress content
-      
+
       session$sendCustomMessage("updateProgressEmail", "<p>Starting to send emails. Please wait...</p>")
       
       #Send Emails with attachments
@@ -549,7 +612,12 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       
       req(statements$cashier_per_store)
       req(statements$moneygram)
-      
+
+      # Re-read Cashier Groups so Database-tab edits are used for this run
+      groups_refresh(groups_refresh() + 1)
+
+      unmatched_now <- unmatched()
+
       # Reset progress
       progress$step <- 0
       progress$current_report <- 1
@@ -562,6 +630,7 @@ mod_cashier_monitoring_server <- function(id, dbase_csi){
       showModal(modalDialog(
         title = glue::glue("Generate Reports for {statements$statement_date |> format('%d/%m/%Y')}"),
         size = 'l',
+        unmatched_warning_ui(unmatched_now),
         div(
           id = "progress_content",
           p("Starting report generation...")
