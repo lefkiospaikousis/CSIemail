@@ -45,7 +45,22 @@ Dependencies are managed with `renv` (`renv.lock` records R 4.2.3). Run `renv::r
 ### Production deployment (Windows Server)
 The server keeps its own git-ignored `inst/golem-config.yml`. If it's a git checkout, the first pull after the file was un-tracked deletes it, so it must be backed up and restored around that pull.
 
-[ShinyApp.bat](ShinyApp.bat) runs [launch_on_browser.R](launch_on_browser.R) via `Rscript.exe`. Whether Task Scheduler or an NSSM service supervises it is unconfirmed. The script detects the server IP via `ipconfig`, `runApp()`s the hard-coded production folder (which executes `app.R`) on **port 3846** bound to that IP, and sinks R messages to `error_log.Rout` (overwritten on restart). `folder_address` and the log path are hardcoded to the production server. The `.bat` points at R-4.1.0, which doesn't match `renv.lock`.
+An NSSM Windows service runs `bin\x64\Rscript.exe` with the root-level [run_app.R](run_app.R) as its argument. There's no `.bat` in the chain. `ShinyApp.bat` and `launch_on_browser.R` are **deprecated and unused** since 2026-11-08. They're kept, with a deprecation header, only for reference and rollbacks; don't update them or point anything at them. This launcher is not [R/run_app.R](R/run_app.R): it loads the package and calls that file's `run_app()`. It's excluded from the build via `.Rbuildignore`, and mirrors the DPI XML app's launcher (`tax_xml/run_app.R`).
+
+What it does:
+- finds its own folder, `setwd()`s there, and activates renv
+- warns if the R version doesn't match `renv.lock`
+- stops with a clear `ERROR:` if `inst/golem-config.yml` or the `DB/` files are missing
+- uses `GOLEM_CONFIG_ACTIVE` if set, otherwise `production`, and sets `golem.app.prod = TRUE`
+- runs `pkgload::load_all()`
+- serves `run_app()` on `0.0.0.0`, port = the first argument, else `APP_PORT`, else **3846**
+
+Logging and exit:
+- it **appends** to `logs/app.log` (git-ignored)
+- each `log_line()` flushes, and a `later` timer flushes every 5 s, because NSSM stops the service by killing R
+- it exits with code 1 on error, so NSSM restarts it
+
+The service must run as the Windows account that owns the `acs` keyring entry, otherwise sending email fails. Full procedure: [docs/handover/06-deployment.md](docs/handover/06-deployment.md). `app.R` is only golem's RStudio "Run App" entry point; the service doesn't use it.
 
 ### Tests
 A `testthat` (edition 3) suite lives in [tests/testthat/](tests/testthat/). Run it with `devtools::test()` or `testthat::test_local()`. There's no CI yet. Coverage:

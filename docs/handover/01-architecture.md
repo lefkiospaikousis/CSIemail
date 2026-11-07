@@ -2,7 +2,7 @@
 
 ## The big picture
 
-CSIemail is a **golem app**: it's built as an R package (`CSIemail`, [DESCRIPTION](../../DESCRIPTION)) whose only exported entry point is `run_app()` ([R/run_app.R:10](../../R/run_app.R#L10)). All the app code lives in `R/`. Nothing is `source()`d. In development you load the package with `pkgload::load_all()` or `golem::document_and_reload()`, and in production `app.R` does the same ([app.R:5](../../app.R#L5)).
+CSIemail is a **golem app**: it's built as an R package (`CSIemail`, [DESCRIPTION](../../DESCRIPTION)) whose only exported entry point is `run_app()` ([R/run_app.R:10](../../R/run_app.R#L10)). All the app code lives in `R/`. Nothing is `source()`d. In development you load the package with `pkgload::load_all()` or `golem::document_and_reload()`, and in production the launcher [run_app.R](../../run_app.R) (root folder, started by NSSM) does the same.
 
 ```mermaid
 flowchart LR

@@ -11,7 +11,9 @@
 | System libraries | None beyond what CRAN binaries bundle on Windows (`RSQLite`, `openxlsx`, `readxl`, `zip` ship as binaries). On Linux you'd need the usual `libxml2` / `libcurl` / `libssl` / `libsodium` headers, plus a keyring backend. That isn't tested | inferred |
 | RStudio | optional. `CSIemail.Rproj` is the project file | |
 
-> ⚠️ TO CONFIRM: [ShinyApp.bat](../../ShinyApp.bat) hard-codes `R-4.1.0`, but `renv.lock` was written by R 4.2.3. This dev machine has 4.1.0, 4.2.3 and 4.3.3 installed. Which R version does the production server actually run?
+Production must run R 4.2.3 as well. The NSSM service points at `C:\Program Files\R\R-4.2.3\bin\x64\Rscript.exe`, and `run_app.R` logs a warning if the R version doesn't match `renv.lock`. This dev machine has 4.1.0, 4.2.3 and 4.3.3 installed, and the `Rscript` on the PATH is 4.1.0, so always use the full path.
+
+> ⚠️ TO CONFIRM: is R 4.2.3 installed on the production server?
 
 `DESCRIPTION` says `Depends: R (>= 2.10)`, but the code uses the native pipe `|>` and needs **R ≥ 4.1**.
 
@@ -110,11 +112,11 @@ The R option `golem.app.prod` no longer affects either decision. `app.R` still s
 |---|---|---|---|
 | `source("dev/run_dev.R")` | `default` (unless the env var is set) | creds file | `city_emails2` |
 | `pkgload::load_all(); run_app()` | env var or `default` | creds file | `city_emails2` |
-| `app.R` / production launcher | `production` (set in [app.R:7](../../app.R#L7)) | keyring `acs` | `city_emails` (**real cashiers**) |
+| production service: `Rscript.exe run_app.R` (or `app.R` in RStudio) | `production` (default in [run_app.R](../../run_app.R), unless NSSM sets `GOLEM_CONFIG_ACTIVE`) | keyring `acs` | `city_emails` (**real cashiers**) |
 
 **Seeing which mode is active:**
 - The sidebar shows `Config: <profile>`, `SMTP credentials: <file|keyring>` and `Cashier emails: <table>`. A red **(TEST)** appears when the table isn't `city_emails` (`mode_badge()`, [R/fct_ui.R:30](../../R/fct_ui.R#L30)).
-- The same line is logged at session start (`app_server`, [R/app_server.R:41-44](../../R/app_server.R#L41-L44)), so it ends up in `error_log.Rout` in production.
+- The same line is logged at session start (`app_server`, [R/app_server.R:41-44](../../R/app_server.R#L41-L44)), so it ends up in `logs/app.log` in production. The launcher also logs it once at startup.
 
 Tab 2 (store CSI emails) always sends to the addresses in the `emails` table, whatever the profile. Only the cashier reports have a test recipient list.
 

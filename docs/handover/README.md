@@ -15,7 +15,7 @@ CSIemail is a Shiny app, built as an R package with [golem](https://thinkr-open.
 2. **Cashier monitoring.** A user uploads three daily statements: a *Cashier per Store* report (Excel, with Greek headers), a *Moneygram* activity statement (Excel) and a *VIVA* card-payments statement (CSV). The app reconciles them per store, writes one protected Excel workbook per **city** (the "ΤΑΜΕΙΑΚΗ" or *Tamiaki* report) and emails each city's cashier group.
 3. **Reference data maintenance.** CRUD screens for the lookup tables the first two jobs depend on: store emails, city cashier emails, city→store groups, and the Moneygram agent→store mapping.
 
-Access is behind a login page (`shinymanager`). The production instance runs on an ACS Windows server on the local network, port 3846 ([launch_on_browser.R](../../launch_on_browser.R)).
+Access is behind a login page (`shinymanager`). The production instance runs on an ACS Windows server on the local network, port 3846. An NSSM Windows service starts it with the launcher [run_app.R](../../run_app.R) ([06-deployment.md](06-deployment.md)).
 
 > ⚠️ TO CONFIRM: who uses the app day to day (accounts staff? how many?), how often each job runs (daily?), and who administers user accounts. None of this can be read from the code.
 

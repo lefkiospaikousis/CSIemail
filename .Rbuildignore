@@ -10,6 +10,9 @@ $run_dev.*
 ^SampleData$
 ^DB$
 ^app\.R$
+^run_app\.R$
+^logs$
+^tests/testthat/_snaps$
 ^rsconnect$
 ^\.positai$
 ^\.claude$

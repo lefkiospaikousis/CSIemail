@@ -119,7 +119,8 @@ Change `Version:` in `DESCRIPTION`. The sidebar reads it with `utils::packageVer
   - `blastula::smtp_send(..., verbose = TRUE)` shows the SMTP conversation.
 - **"no such table"** at startup: the app opened the wrong `db_path` (often the wrong working directory) and SQLite created an empty file. Delete the empty file and start from the repo root.
 - **Nobody can log in:** `DB/credentials.sqlite` is missing, or the `users_passphrase` doesn't match.
-- **Logs in production:** `error_log.Rout` in the app folder. It's overwritten on restart, so copy it before restarting.
+- **Logs in production:** `logs\app.log` in the app folder, appended across restarts. Look for `ERROR:` lines and the startup line with the version and profile. `logs\service.log` holds NSSM's capture of anything printed before the launcher opened its log. More in [06](06-deployment.md#5-troubleshooting).
+- **Run the production launcher locally:** `"C:\Program Files\R\R-4.2.3\bin\x64\Rscript.exe" run_app.R 3850` uses the `production` profile, so **real recipients**. Set `GOLEM_CONFIG_ACTIVE=default` first for a safe run.
 - **Encoding:** if Greek headers stop matching, check `Encoding: UTF-8` in DESCRIPTION. Keep `\u` escapes in the code. The one literal `Τιμολόγιο` at [R/fct_read_helpers.R:243](../../R/fct_read_helpers.R#L243) is the most likely to break.
 
 ## Known issues, tech debt and risks
@@ -160,8 +161,8 @@ Ranked roughly by impact.
 
 | # | Issue | Where |
 |---|---|---|
-| O1 | Hard-coded production paths, with the dev ones commented out | [launch_on_browser.R:6-15](../../launch_on_browser.R#L6-L15) |
-| O2 | The R version in `ShinyApp.bat` (4.1.0) doesn't match `renv.lock` (4.2.3) | [ShinyApp.bat](../../ShinyApp.bat) |
+| O1 | ✅ **Fixed (2026-11-08).** The old `launch_on_browser.R` hard-coded the production folder and log path. `run_app.R` finds its own folder. `launch_on_browser.R` is kept, marked deprecated | [run_app.R](../../run_app.R) |
+| O2 | ✅ **Fixed (2026-11-08).** `ShinyApp.bat` called R 4.1.0 while `renv.lock` says 4.2.3. The service no longer uses a `.bat` (the file is kept, marked deprecated). NSSM points at R 4.2.3's `Rscript.exe`, and `run_app.R` logs a warning on any mismatch | [run_app.R](../../run_app.R), [06](06-deployment.md#16-point-the-nssm-service-at-run_appr) |
 | O3 | Packages used but not in `DESCRIPTION` (`zip`, `cli`, `here`, `dbplyr`) | [DESCRIPTION](../../DESCRIPTION) |
 | O4 | The DB isn't versioned or backed up by anything in the repo. There are no migrations and no constraints | `DB/` |
 | O5 | One R process serves every user, and email sending and report generation block it | architecture |

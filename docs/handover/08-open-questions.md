@@ -39,9 +39,9 @@ These are all the `⚠️ TO CONFIRM` items from the other docs, in one place. P
 
 | # | Question | Raised in |
 |---|---|---|
-| Q18 | Production server hostname or IP, and the app folder. `launch_on_browser.R` hard-codes a path under an administrator profile. | [06](06-deployment.md) |
-| Q19 | Is the process supervised by **Task Scheduler** or an **NSSM service**? What's the trigger, and does it restart on failure? | [06](06-deployment.md) |
-| Q20 | Which R version runs on the server? (`ShinyApp.bat` says 4.1.0, `renv.lock` says 4.2.3.) Is `renv` restored there? | [05](05-setup-and-running.md#requirements), [06](06-deployment.md) |
+| Q18 | Production server hostname, and the app folder. The old launcher used `C:\Users\administrator.ACSCY\Documents\CSIemail`; is that still right? | [06](06-deployment.md) |
+| Q19 | *Partly answered:* it's an **NSSM service** (per `How to set up the NSSM service.txt`), now pointed at `Rscript.exe run_app.R`. What's the **service name**, and which **Windows account** does it log on as? It must own the `acs` keyring entry. | [06](06-deployment.md#16-point-the-nssm-service-at-run_appr) |
+| Q20 | Is R 4.2.3 installed on the server (`renv.lock` needs it)? | [05](05-setup-and-running.md#requirements), [06](06-deployment.md) |
 | Q21 | How does code get to the server: `git pull`, manual copy, or OneDrive sync? | [06](06-deployment.md) |
 | Q22 | Which branch is deployed, `master` or `dev`? The two have diverged: `dev` is 13 ahead and `master` is 3 ahead. | [06](06-deployment.md) |
 | Q23 | Is port 3846 still correct? (An old log shows 3845.) Is anything (proxy, firewall rule) in front of it? | [06](06-deployment.md) |

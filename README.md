@@ -129,25 +129,28 @@ blastula::create_smtp_creds_key(
 
 ### Production Deployment (Windows Server)
 
-In production, the app runs from source on an ACS Windows Server.
-[`ShinyApp.bat`](ShinyApp.bat) calls `Rscript.exe` to run
-[`launch_on_browser.R`](launch_on_browser.R), which:
+In production, the app runs from source on an ACS Windows Server as a Windows service
+managed by [NSSM](https://nssm.cc/). NSSM starts R's `Rscript.exe` with the launcher
+[`run_app.R`](run_app.R) in the project root. There's no `.bat` file. The launcher:
 
-- Detects the server's local IP address with `ipconfig`
-- Runs the app folder with `shiny::runApp()` on port **3846**, bound to that IP (no browser launch).
-  `app.R` then sets production mode and the `production` profile
-- Redirects R messages to `error_log.Rout`, which is overwritten on each start
+- finds its own folder, activates renv, and warns if the R version doesn't match `renv.lock`
+- checks that `inst/golem-config.yml` and the `DB/` files exist
+- loads the package with the `production` profile (or `GOLEM_CONFIG_ACTIVE`, if set)
+- serves on all interfaces, port **3846** (or `APP_PORT`, or the first argument)
+- appends to `logs/app.log`, and exits with code 1 on errors so NSSM restarts it
 
-Once running, the app is available on the local network at:
-
+```cmd
+"C:\Program Files\R\R-4.2.3\bin\x64\Rscript.exe" run_app.R        # by hand; NSSM runs the same
 ```
-http://<server-ip>:3846/
-```
 
+Once running, the app is available on the local network at `http://<server-name>:3846/`.
+
+The service must run as the Windows account that owns the `acs` keyring entry (the SMTP password).
 When deploying, keep the server's `DB/` folder and its own `inst/golem-config.yml`, and back up `DB/` first.
-If the server folder is a git checkout, the first pull after `golem-config.yml` was un-tracked **deletes the
-server's copy**. Copy it out before pulling and restore it afterwards.
-See [`docs/handover/06-deployment.md`](docs/handover/06-deployment.md) for the release and rollback checklist.
+See [`docs/handover/06-deployment.md`](docs/handover/06-deployment.md) for:
+- the NSSM setup
+- the one-time switch from the old `ShinyApp.bat`
+- the update, rollback and troubleshooting steps
 
 ## Project Structure
 
@@ -169,9 +172,10 @@ CSIemail/
 ├── Scripts/                      # Ad-hoc scripts (git-ignored)
 ├── dev/                          # golem dev scripts (run_dev.R)
 ├── renv/, renv.lock              # Dependency management
-├── launch_on_browser.R           # Production launcher
-├── ShinyApp.bat                  # Calls the launcher with Rscript
-└── app.R                         # Production entry point
+├── tests/testthat/               # Automated tests
+├── run_app.R                     # Production launcher (started by NSSM); not R/run_app.R
+├── ShinyApp.bat, launch_on_browser.R  # DEPRECATED old launcher, kept for reference only
+└── app.R                         # golem entry point for RStudio's "Run App"
 ```
 
 ## Author

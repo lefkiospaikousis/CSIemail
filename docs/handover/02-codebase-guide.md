@@ -12,14 +12,16 @@
 | `man/` | ✅ | ✅ | roxygen output for the few documented functions |
 | `data-raw/` | ✅ | ❌ (`.Rbuildignore`) | Excel templates **read at runtime** (paths in config), the scripts that build `sysdata.rda` and seed the `emails` table, and the source spreadsheets |
 | `dev/` | ✅ | ❌ | golem dev scripts. Only `run_dev.R` is actually used |
-| `app.R` | ✅ | ❌ | Production entry point: sets prod mode and profile, then calls `run_app()` |
-| `launch_on_browser.R`, `ShinyApp.bat` | ✅ | ✅/— | Production launcher on the Windows server ([06-deployment.md](06-deployment.md)) |
+| `app.R` | ✅ | ❌ | golem entry point for RStudio "Run App": sets prod mode and the `production` profile, then calls `run_app()`. The production service uses the root `run_app.R` instead |
+| `run_app.R` (root) | ✅ | ❌ (`.Rbuildignore`) | Production launcher, started by the NSSM service as `Rscript.exe run_app.R` ([06-deployment.md](06-deployment.md)). Not the same file as `R/run_app.R` |
+| `logs/` | ❌ (`.gitignore`) | ❌ | `logs/app.log`, written by the launcher |
+| `ShinyApp.bat`, `launch_on_browser.R` | ✅ | ✅/— | **Deprecated, not used** since 2026-11-08. The old `.bat` launcher, kept with a deprecation header for reference and rollbacks |
 | `renv.lock`, `renv/`, `.Rprofile` | ✅ (`renv/activate.R`, `settings.json`, `.gitignore`; the library itself is not) | ❌ | Dependency management |
 | `.Renviron` | ✅ | — | Sets `RENV_PATHS_LIBRARY` only |
 | `DB/` | ❌ (`.gitignore`) | ❌ | SQLite databases and CSV copies |
 | `SampleData/` | ❌ | ❌ | Sample input files, plus `CashierReports/`, the output folder for the default and dev profiles |
 | `Scripts/` | ❌ | ❌ | Ad-hoc exploration scripts and the user-DB creation script |
-| `error_log.Rout`, `service.*.log`, `launch_on_browser.log` | ❌ (`*.log` and `*.Rout` are git-ignored; untracked on 2026-11-08) | — | Runtime log files. They stay local on each machine |
+| `error_log.Rout`, `service.*.log`, `launch_on_browser.log` | ❌ (`*.log` and `*.Rout` are git-ignored; untracked on 2026-11-08) | — | Logs of the old `.bat` launcher. No longer written; safe to delete |
 | `mail_improvast` | ❌ | — | blastula SMTP credentials file for dev. **Contains a secret** |
 
 ## `R/`, file by file

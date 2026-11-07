@@ -15,3 +15,6 @@ inst/golem-config.yml
 # Log files (error_log.Rout from launch_on_browser.R, service.*.log, launch_on_browser.log)
 *.log
 *.Rout
+
+# Runtime logs written by run_app.R
+logs/
